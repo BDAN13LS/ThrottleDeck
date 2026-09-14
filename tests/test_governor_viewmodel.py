@@ -14,6 +14,7 @@ def metrics(*, execution: int, perps: int, other: int, headroom: int) -> dict:
         return {
             "requests_served": requests,
             "broker_failures": 0,
+            "upstream_429s": 0,
             "upstream_429s_with_headroom": 0,
             "queue_depth": 0,
             "queue_wait_seconds_max": 0.002,
@@ -99,6 +100,15 @@ def test_dashboard_snapshot_derives_real_windows_and_budget_lanes(tmp_path) -> N
     assert snapshot["budgets"][2]["configured"] is True
     rows = {row["app_id"]: row for row in snapshot["apps"]}
     assert rows["execution"]["recent_requests"] == 10
+    assert rows["execution"]["venue_split"] == [
+        {
+            "venue": "polymarket-us",
+            "count": 10,
+            "upstream_429s": 0,
+            "headroom_429s": 0,
+            "queue_wait_ms": 2.0,
+        },
+    ]
     assert rows["research"]["recent_requests"] == 7
     assert rows["execution"]["recent_window_seconds"] == 60
     assert rows["execution"]["money_mode"] == "real-money"

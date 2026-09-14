@@ -104,8 +104,20 @@ const COLLECTOR = app("collector", "Signal Collector", "paper", {
   recent_requests: 12,
   request_series: [0, 1, 0, 4, 2, 5],
   venue_split: [
-    { venue: "polymarket-us", count: 7 },
-    { venue: "kalshi", count: 5 },
+    {
+      venue: "polymarket-us",
+      count: 7,
+      upstream_429s: 2,
+      headroom_429s: 1,
+      queue_wait_ms: 18,
+    },
+    {
+      venue: "kalshi",
+      count: 5,
+      upstream_429s: 0,
+      headroom_429s: 0,
+      queue_wait_ms: 5,
+    },
   ],
 });
 
@@ -123,7 +135,15 @@ const EXECUTION = app("execution", "Execution Bot", "real-money", {
   coverage_note: "Brokered REST reads only. Order submission does not use the broker.",
   recent_requests: 36,
   request_series: [0, 12, 0, 0, 24, 0],
-  venue_split: [{ venue: "polymarket-us", count: 36 }],
+  venue_split: [
+    {
+      venue: "polymarket-us",
+      count: 36,
+      upstream_429s: 1,
+      headroom_429s: 1,
+      queue_wait_ms: 16,
+    },
+  ],
 });
 
 const RESEARCH = app("research", "Market Research", "paper", {
@@ -133,7 +153,15 @@ const RESEARCH = app("research", "Market Research", "paper", {
   recent_requests: 28,
   request_series: [7, 0, 7, 0, 7, 7],
   queue_wait_ms: 5,
-  venue_split: [{ venue: "kalshi", count: 28 }],
+  venue_split: [
+    {
+      venue: "kalshi",
+      count: 28,
+      upstream_429s: 0,
+      headroom_429s: 0,
+      queue_wait_ms: 5,
+    },
+  ],
 });
 
 function activity(
@@ -219,7 +247,15 @@ const UNASSIGNED_ROW = app("unassigned", "Unassigned callers", "paper", {
     "Callers the registry does not know. Their reads are still brokered and still count.",
   recent_requests: 4,
   request_series: [0, 0, 1, 0, 1, 2],
-  venue_split: [{ venue: "kalshi", count: 4 }],
+  venue_split: [
+    {
+      venue: "kalshi",
+      count: 4,
+      upstream_429s: 0,
+      headroom_429s: 0,
+      queue_wait_ms: 0,
+    },
+  ],
 });
 
 /** Healthy baseline: every venue readable, every scope allowed. */

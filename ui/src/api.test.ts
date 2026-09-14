@@ -8,6 +8,7 @@ import {
   stopBrokerAccess,
   stopNewMoneyOrders,
   unlockNewMoneyOrders,
+  runTrafficAudit,
   type Fetcher,
 } from "./api";
 import { COPY } from "./derive";
@@ -196,6 +197,28 @@ describe("action builders", () => {
     expect(stopBrokerAccess(snapshotOf("healthy"), null, "operator").confirmation).toBe(
       "STOP ALL",
     );
+  });
+});
+
+describe("runTrafficAudit", () => {
+  it("runs only on demand with same-origin session and CSRF protection", async () => {
+    const fetcher = fetcherOf(jsonResponse({
+      schemaVersion: 1,
+      status: "findings",
+      sampledForMs: 2000,
+      findings: [
+        { venue: "kalshi", process_name: "python", pid: 44, observations: 2 },
+      ],
+      caveat: "Sampling can miss short connections.",
+    }));
+    const result = await runTrafficAudit(fetcher);
+    const [url, init] = fetcher.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/v1/diagnostics/direct-egress");
+    expect(init.method).toBe("POST");
+    expect(init.credentials).toBe("same-origin");
+    expect((init.headers as Record<string, string>)["X-CSRF-Token"]).toBe("token-abc");
+    expect(result.status).toBe("findings");
+    expect(result.findings[0]?.processName).toBe("python");
   });
 });
 

@@ -247,8 +247,32 @@ def _app_json(
             first, venue, selected, "requests_served"
         )
         recent = _counter_delta(current_requests, earlier_requests)
+        current_429s = _metric_for_callers(latest, venue, selected, "upstream_429s")
+        earlier_429s = _metric_for_callers(first, venue, selected, "upstream_429s")
+        recent_429s = _counter_delta(current_429s, earlier_429s)
+        current_headroom = _metric_for_callers(
+            latest, venue, selected, "upstream_429s_with_headroom"
+        )
+        earlier_headroom = _metric_for_callers(
+            first, venue, selected, "upstream_429s_with_headroom"
+        )
+        recent_headroom = _counter_delta(current_headroom, earlier_headroom)
+        venue_wait: float | None = None
+        rows = _mapping(_venue(latest, venue).get("callers"))
+        for caller in selected:
+            wait = _number(_mapping(rows.get(caller)).get("queue_wait_seconds_max"))
+            if wait is not None:
+                venue_wait = max(venue_wait or 0.0, float(wait) * 1000)
         if recent is not None:
-            splits.append({"venue": display, "count": recent})
+            splits.append(
+                {
+                    "venue": display,
+                    "count": recent,
+                    "upstream_429s": recent_429s,
+                    "headroom_429s": recent_headroom,
+                    "queue_wait_ms": venue_wait,
+                }
+            )
             assert total_requests is not None
             total_requests += recent
         current_errors = _metric_for_callers(latest, venue, selected, "broker_failures")
@@ -257,11 +281,8 @@ def _app_json(
         if error_delta is not None:
             assert total_errors is not None
             total_errors += error_delta
-        rows = _mapping(_venue(latest, venue).get("callers"))
-        for caller in selected:
-            wait = _number(_mapping(rows.get(caller)).get("queue_wait_seconds_max"))
-            if wait is not None:
-                max_wait = max(max_wait or 0.0, float(wait) * 1000)
+        if venue_wait is not None:
+            max_wait = max(max_wait or 0.0, venue_wait)
 
     return {
         "app_id": app_id,

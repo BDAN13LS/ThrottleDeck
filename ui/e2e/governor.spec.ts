@@ -233,7 +233,7 @@ test.describe("Governor dashboard", () => {
     }
   });
 
-  test("uses the approved cool near-black theme", async ({ page }) => {
+  test("uses the approved neutral Obsidian-style theme", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Polymarket REST" })).toBeVisible();
     const palette = await page.evaluate(() => {
       const body = getComputedStyle(document.body);
@@ -247,9 +247,9 @@ test.describe("Governor dashboard", () => {
     });
 
     expect(palette).toEqual({
-      canvas: "rgb(7, 9, 13)",
-      surface: "rgb(23, 27, 35)",
-      text: "rgb(245, 247, 250)",
+      canvas: "rgb(11, 13, 16)",
+      surface: "rgb(21, 24, 30)",
+      text: "rgb(241, 243, 245)",
       scheme: "dark",
     });
     await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute(

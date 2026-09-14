@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ActivityFeed } from "./ActivityFeed";
+import type { Fetcher } from "../api";
+import { jsonResponse } from "../test/support";
 import { restoreViewportWidth, setViewportWidth, snapshotOf } from "../test/support";
 
 afterEach(() => {
@@ -89,5 +91,29 @@ describe("ActivityFeed", () => {
       ),
     ).toBeVisible();
     expect(screen.getByText("Broker started")).toBeVisible();
+  });
+
+  it("runs the direct-traffic audit only when the operator clicks", async () => {
+    const fetcher = vi.fn<Fetcher>(async () => jsonResponse({
+      schemaVersion: 1,
+      status: "findings",
+      sampledForMs: 2000,
+      findings: [
+        {
+          venue: "polymarket-us",
+          process_name: "python",
+          pid: 123,
+          observations: 5,
+        },
+      ],
+      caveat: "Sampling can miss short connections.",
+    }));
+    render(<ActivityFeed snapshot={snapshotOf("healthy")} fetcher={fetcher} />);
+    expect(fetcher).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Traffic audit" }));
+    expect(
+      await screen.findByText(/python.*PID 123.*polymarket-us/i),
+    ).toBeVisible();
+    expect(fetcher).toHaveBeenCalledOnce();
   });
 });

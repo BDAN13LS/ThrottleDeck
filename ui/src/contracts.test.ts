@@ -146,6 +146,28 @@ describe("parseSnapshot", () => {
     }
   });
 
+  it("keeps per-venue throttle and queue diagnostics as measured", () => {
+    const payload = structuredClone(healthy) as Record<string, any>;
+    payload.apps[0].venue_split = [{
+      venue: "polymarket-us",
+      count: 12,
+      upstream_429s: 7,
+      headroom_429s: 6,
+      queue_wait_ms: 18.5,
+    }];
+    const parsed = parseSnapshot(payload);
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.snapshot.apps[0]?.venueSplit[0]).toEqual({
+        venue: "polymarket-us",
+        count: 12,
+        upstream429s: 7,
+        headroom429s: 6,
+        queueWaitMs: 18.5,
+      });
+    }
+  });
+
   it("keeps per-user money-control presentation out of frontend constants", () => {
     const payload = structuredClone(healthy) as Record<string, any>;
     payload.tradeLock = {

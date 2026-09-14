@@ -230,6 +230,53 @@ def test_maintenance_rolls_raw_samples_and_expires_old_rollups(tmp_path) -> None
     assert store.rollup_count() == 1
 
 
+def test_maintenance_rolls_full_resolution_samples_after_six_hours(tmp_path) -> None:
+    clock = [NOW]
+    store = ControlStore.create(tmp_path / "governor.sqlite3", now=lambda: clock[0])
+    store.record_sample(
+        BrokerSample(
+            sampled_at=NOW,
+            instance_id="instance-one",
+            status="ok",
+            metrics={"requests": 1},
+        )
+    )
+
+    clock[0] = NOW + timedelta(hours=6, seconds=1)
+    result = store.maintain()
+
+    assert result.rolled_up == 1
+    assert store.sample_count() == 0
+    assert store.rollup_count() == 1
+
+
+def test_paused_storage_guard_reclaims_space_after_retention(tmp_path) -> None:
+    database = tmp_path / "governor.sqlite3"
+    clock = [NOW]
+    store = ControlStore.create(
+        database,
+        now=lambda: clock[0],
+        max_storage_bytes=400_000,
+    )
+    for index in range(12):
+        store.record_sample(
+            BrokerSample(
+                sampled_at=NOW + timedelta(seconds=index),
+                instance_id="instance-one",
+                status="ok",
+                metrics={"payload": "x" * 50_000, "index": index},
+            )
+        )
+    assert store.maintain().collection_paused is True
+
+    clock[0] = NOW + timedelta(hours=7)
+    recovered = store.maintain()
+
+    assert recovered.rolled_up == 12
+    assert recovered.collection_paused is False
+    assert recovered.total_bytes < 400_000
+
+
 def test_storage_guard_pauses_samples_but_not_control_writes(tmp_path) -> None:
     database = tmp_path / "governor.sqlite3"
     store = ControlStore.create(

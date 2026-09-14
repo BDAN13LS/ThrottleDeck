@@ -58,6 +58,59 @@ async def signed_in(service):
 
 
 @pytest.mark.asyncio
+async def test_direct_egress_audit_is_manual_and_csrf_protected(tmp_path) -> None:
+    store = ControlStore.create(
+        tmp_path / "governor.sqlite3",
+        policy_target=tmp_path / "broker-policy.json",
+        now=lambda: NOW,
+    )
+    sessions = SessionManager(now=lambda: NOW)
+    key = b"k" * 32
+    app = create_app(
+        store,
+        control_key=key,
+        sessions=sessions,
+        order_lock_path=tmp_path / "execution-order.lock",
+        now=lambda: NOW,
+        direct_egress_audit=lambda: {
+            "schemaVersion": 1,
+            "status": "clear",
+            "sampledForMs": 2000,
+            "findings": [],
+            "caveat": "No finding does not prove there was no bypass.",
+        },
+    )
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url=ORIGIN
+    ) as client:
+        denied = await client.post(
+            "/api/v1/diagnostics/direct-egress", headers={"host": HOST}
+        )
+        assert denied.status_code == 401
+
+        launched = await client.post(
+            "/internal/v1/launch",
+            headers={"host": HOST, CONTROL_KEY_HEADER: key.hex()},
+        )
+        nonce = launched.json()["nonce"]
+        redirect = await client.get(
+            f"/launch?nonce={nonce}", headers={"host": HOST}, follow_redirects=False
+        )
+        csrf = redirect.headers["x-governor-csrf"]
+        no_csrf = await client.post(
+            "/api/v1/diagnostics/direct-egress",
+            headers={"host": HOST, "origin": ORIGIN},
+        )
+        assert no_csrf.status_code == 403
+        result = await client.post(
+            "/api/v1/diagnostics/direct-egress",
+            headers={"host": HOST, "origin": ORIGIN, "x-csrf-token": csrf},
+        )
+        assert result.status_code == 200
+        assert result.json()["status"] == "clear"
+
+
+@pytest.mark.asyncio
 async def test_launch_nonce_is_one_use_and_snapshot_accept_path(service) -> None:
     client, _, _, key = service
     response = await client.post(

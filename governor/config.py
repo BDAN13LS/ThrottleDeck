@@ -9,7 +9,10 @@ from pathlib import Path
 GOVERNOR_HOST = "127.0.0.1"
 GOVERNOR_PORT = 8778
 BROKER_ORIGIN = "http://127.0.0.1:8777"
-RAW_RETENTION_HOURS = 24
+# Five-second snapshots are storage-heavy. Six hours preserves the recent
+# troubleshooting window while minute rollups preserve the longer 90-day
+# history within the 250 MB guard.
+RAW_RETENTION_HOURS = 6
 ROLLUP_RETENTION_DAYS = 90
 MAX_STORAGE_BYTES = 250 * 1024 * 1024
 

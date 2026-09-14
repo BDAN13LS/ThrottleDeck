@@ -64,6 +64,9 @@ describe("AppDetail", () => {
     expect(screen.getByText("Recent requests")).toBeVisible();
     expect(screen.getByText("12 REST / 1m")).toBeVisible();
     expect(screen.getByText("Errors")).toBeVisible();
+    expect(screen.getByText("429s")).toBeVisible();
+    expect(screen.getByText("Headroom 429s")).toBeVisible();
+    expect(screen.getByText("Worst queue")).toBeVisible();
   });
 
   it("surfaces the coverage gap instead of hiding it", () => {

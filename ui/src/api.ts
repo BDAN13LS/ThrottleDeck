@@ -19,6 +19,21 @@ import {
 import { COPY } from "./derive";
 
 export const SNAPSHOT_URL = "/api/v1/snapshot";
+export const TRAFFIC_AUDIT_URL = "/api/v1/diagnostics/direct-egress";
+
+export interface TrafficAuditFinding {
+  readonly venue: string;
+  readonly processName: string;
+  readonly pid: number;
+  readonly observations: number;
+}
+
+export interface TrafficAuditResult {
+  readonly status: "clear" | "findings" | "unavailable" | "failed";
+  readonly sampledForMs: number;
+  readonly findings: readonly TrafficAuditFinding[];
+  readonly caveat: string;
+}
 
 export type SnapshotLoad =
   | { readonly ok: true; readonly snapshot: GovernorSnapshot }
@@ -114,6 +129,70 @@ export async function loadSnapshot(
     };
   }
   return parseSnapshot(payload);
+}
+
+export async function runTrafficAudit(
+  fetcher: Fetcher = globalThis.fetch,
+): Promise<TrafficAuditResult> {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  const csrf = readCsrfToken();
+  if (csrf !== null) {
+    headers[CSRF_HEADER_NAME] = csrf;
+  }
+  try {
+    const response = await fetcher(TRAFFIC_AUDIT_URL, {
+      method: "POST",
+      headers,
+      credentials: "same-origin",
+    });
+    if (!response.ok) {
+      throw new Error("audit refused");
+    }
+    const payload = (await response.json()) as Record<string, unknown>;
+    const status = payload["status"];
+    const findings = Array.isArray(payload["findings"])
+      ? payload["findings"].flatMap((value) => {
+          if (typeof value !== "object" || value === null || Array.isArray(value)) {
+            return [];
+          }
+          const row = value as Record<string, unknown>;
+          if (
+            typeof row["venue"] !== "string" ||
+            typeof row["process_name"] !== "string" ||
+            typeof row["pid"] !== "number" ||
+            typeof row["observations"] !== "number"
+          ) {
+            return [];
+          }
+          return [{
+            venue: row["venue"],
+            processName: row["process_name"],
+            pid: row["pid"],
+            observations: row["observations"],
+          }];
+        })
+      : [];
+    return {
+      status:
+        status === "clear" || status === "findings" || status === "unavailable"
+          ? status
+          : "failed",
+      sampledForMs:
+        typeof payload["sampledForMs"] === "number" ? payload["sampledForMs"] : 0,
+      findings,
+      caveat:
+        typeof payload["caveat"] === "string"
+          ? payload["caveat"]
+          : "The traffic audit returned an unreadable result.",
+    };
+  } catch {
+    return {
+      status: "failed",
+      sampledForMs: 0,
+      findings: [],
+      caveat: "ThrottleDeck could not run the traffic audit.",
+    };
+  }
 }
 
 function actionBody(action: ControlAction): Record<string, unknown> {

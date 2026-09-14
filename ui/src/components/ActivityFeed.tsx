@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { runTrafficAudit, type Fetcher, type TrafficAuditResult } from "../api";
 import type { ActivityEvent, GovernorSnapshot } from "../contracts";
 import {
   COPY,
@@ -16,17 +17,41 @@ import { ChevronDownIcon, WarningTriangleIcon } from "./icons";
 
 export interface ActivityFeedProps {
   readonly snapshot: GovernorSnapshot;
+  readonly fetcher?: Fetcher;
 }
 
-export function ActivityFeed({ snapshot }: ActivityFeedProps) {
+export function ActivityFeed({ snapshot, fetcher }: ActivityFeedProps) {
   const compact = useCompact(1_000);
   const [expanded, setExpanded] = useState(false);
+  const [auditing, setAuditing] = useState(false);
+  const [audit, setAudit] = useState<TrafficAuditResult | null>(null);
   const events = activityWithHeadroomAlert(snapshot);
+  const auditButton = (
+    <button
+      type="button"
+      className="btn btn--stop activity__audit-button"
+      disabled={auditing}
+      onClick={() => {
+        setAuditing(true);
+        void runTrafficAudit(fetcher).then((result) => {
+          setAudit(result);
+          setAuditing(false);
+        });
+      }}
+    >
+      {auditing ? "Auditing…" : "Traffic audit"}
+    </button>
+  );
+  const auditResult = audit === null ? null : <TrafficAudit result={audit} />;
 
   if (events.length === 0) {
     return (
       <section className="card activity" aria-label="Control activity">
-        <h2 className="section-heading">Control activity</h2>
+        <div className="activity__head">
+          <h2 className="section-heading">Control activity</h2>
+          {auditButton}
+        </div>
+        {auditResult}
         <p className="detail__note">No recorded activity yet.</p>
       </section>
     );
@@ -37,7 +62,11 @@ export function ActivityFeed({ snapshot }: ActivityFeedProps) {
     const rest = events.filter((event) => event !== lead);
     return (
       <section className="card activity" aria-label="Control activity">
-        <h2 className="section-heading">Control activity</h2>
+        <div className="activity__head">
+          <h2 className="section-heading">Control activity</h2>
+          {auditButton}
+        </div>
+        {auditResult}
         <div className="activity__lead" data-tone={severityTone(lead.severity)}>
           <button
             type="button"
@@ -80,7 +109,11 @@ export function ActivityFeed({ snapshot }: ActivityFeedProps) {
 
   return (
     <section className="card activity" aria-label="Control activity">
-      <h2 className="section-heading">Control activity</h2>
+      <div className="activity__head">
+        <h2 className="section-heading">Control activity</h2>
+        {auditButton}
+      </div>
+      {auditResult}
       <ul className="activity__list">
         {events.map((event) => (
           <li
@@ -105,6 +138,29 @@ export function ActivityFeed({ snapshot }: ActivityFeedProps) {
         ))}
       </ul>
     </section>
+  );
+}
+
+function TrafficAudit({ result }: { readonly result: TrafficAuditResult }) {
+  return (
+    <div className="traffic-audit" role="status" data-status={result.status}>
+      {result.findings.length > 0 ? (
+        <ul>
+          {result.findings.map((finding) => (
+            <li key={`${finding.venue}-${finding.pid}`}>
+              {finding.processName} (PID {finding.pid}) → {finding.venue}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>
+          {result.status === "clear"
+            ? "No direct venue connection was visible."
+            : "Traffic audit unavailable."}
+        </p>
+      )}
+      <p className="traffic-audit__caveat">{result.caveat}</p>
+    </div>
   );
 }
 

@@ -66,6 +66,9 @@ export interface Budget {
 export interface VenueSplit {
   readonly venue: string;
   readonly count: number;
+  readonly upstream429s: number | null;
+  readonly headroom429s: number | null;
+  readonly queueWaitMs: number | null;
 }
 
 export interface AppRow {
@@ -300,7 +303,13 @@ function readAppRow(value: unknown): AppRow | null {
         const venue = readString(item["venue"]);
         return venue === null
           ? null
-          : { venue, count: readNumber(item["count"]) ?? 0 };
+          : {
+              venue,
+              count: readNumber(item["count"]) ?? 0,
+              upstream429s: readNumber(item["upstream_429s"] ?? item["upstream429s"]),
+              headroom429s: readNumber(item["headroom_429s"] ?? item["headroom429s"]),
+              queueWaitMs: readNumber(item["queue_wait_ms"] ?? item["queueWaitMs"]),
+            };
       })
       .filter((item): item is VenueSplit => item !== null),
     lastRequestAt: readString(value["last_request_at"] ?? value["lastRequestAt"]),

@@ -223,7 +223,7 @@ export function App({ fetcher, pollMs = 5_000, clock = Date.now }: AppProps) {
                 }}
               />
             </section>
-            <ActivityFeed snapshot={snapshot} />
+            <ActivityFeed snapshot={snapshot} fetcher={fetcher} />
           </div>
         </>
       ) : problem !== null ? (

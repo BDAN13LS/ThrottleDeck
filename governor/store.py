@@ -491,6 +491,11 @@ class ControlStore:
         rollup_cutoff = (now - timedelta(days=ROLLUP_RETENTION_DAYS)).isoformat()
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            was_paused = bool(
+                connection.execute(
+                    "SELECT collection_paused FROM maintenance_state WHERE id=1"
+                ).fetchone()[0]
+            )
             old_rows = connection.execute(
                 "SELECT sample_id, sampled_at, instance_id, status, payload_json "
                 "FROM metric_samples WHERE sampled_at < ? ORDER BY sampled_at",
@@ -531,8 +536,15 @@ class ControlStore:
                 (now.isoformat(),),
             )
             connection.commit()
-            connection.execute("PRAGMA wal_checkpoint(PASSIVE)")
-            connection.execute("PRAGMA incremental_vacuum")
+            connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            if was_paused and old_rows:
+                # A normal DELETE leaves SQLite pages allocated. A full reclaim
+                # is reserved for guard recovery, never the steady-state path.
+                connection.execute("VACUUM")
+                # VACUUM itself writes through the WAL in WAL mode. Truncate it
+                # again before measuring so recovery is based on durable size,
+                # not the temporary compaction journal.
+                connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
 
         total = sum(
             path.stat().st_size

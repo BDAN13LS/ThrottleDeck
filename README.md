@@ -19,6 +19,30 @@ This deliberately occupies a smaller niche than a general API gateway. See
 [related projects and design choices](docs/ALTERNATIVES.md) for the public
 comparison that informed the implementation.
 
+## First run on Windows
+
+Run this from an **elevated** PowerShell window; it may be called from inside or
+outside the checkout:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-throttledeck.ps1
+```
+
+The setup checks Windows, Python 3.12, Microsoft Edge, administrator rights, and
+the two local ports before changing anything. It creates `.venv` when needed,
+installs only the runtime dependencies, registers the one broker task, creates a
+desktop shortcut, starts the compact control window hidden, and waits for both
+local health endpoints. It can be run again: an existing
+`%LOCALAPPDATA%\ThrottleDeck\apps.toml` is left untouched.
+
+The initial rate policy is conservative: Kalshi prediction reads use the Basic
+tier and perps reads remain off until an operator explicitly configures their
+documented rate. Setup does not request, save, display, or configure any
+exchange account material. Configure callers afterwards in the per-user file as
+described in [Configure applications per user](#configure-applications-per-user).
+Append `-PreflightOnly` to the command to run those checks without changing the
+machine.
+
 ## How a read travels
 
 ```
@@ -323,9 +347,24 @@ broker counter deltas. Unknown/reset intervals remain chart gaps rather than fak
 zeroes. The screen explicitly says WebSockets are not measured; it never turns
 REST silence into a claim that an application or direct stream is idle. Control
 activity starts as one expandable priority row.
+
+Expanding an application shows the recent split by venue, including its measured
+upstream 429 count, 429s observed while the broker still had headroom, and worst
+broker queue wait. A headroom 429 is a diagnostic signal, not proof that a
+particular process bypassed the broker. The **Traffic audit** button is a manual
+Windows-only sample of currently established HTTPS connections to the supported
+venues. It shows only process name, PID, venue, and observation count; it never
+collects command lines or request material. A clear result is also not proof:
+short-lived connections can finish between samples.
 Both polling hops use a one-miss grace period. One transient miss keeps the last
 fresh sample without flashing an outage; two consecutive misses surface the
 warning.
+
+History keeps five-second detail for 6 hours and one-minute rollups for 90 days.
+The 250 MB guard pauses sample writes but never control writes. If the guard is
+reached, the next eligible maintenance pass rolls old detail up, performs a
+one-time database compaction, checkpoints the journal, and resumes collection
+when measured storage is back under the cap.
 
 ![ThrottleDeck in its 940 by 700 dark startup layout, using synthetic example applications](docs/design/governor/governor-dark-940x700.png)
 

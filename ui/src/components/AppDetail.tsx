@@ -59,19 +59,6 @@ export function AppDetail({ snapshot, app, now }: AppDetailProps) {
             <dt>Errors</dt>
             <dd>{formatErrors(app)}</dd>
           </dl>
-          <h4 className="detail__heading">Venue split</h4>
-          {app.venueSplit.length > 0 ? (
-            <ul className="venue-split">
-              {app.venueSplit.map((split) => (
-                <li key={split.venue}>
-                  <span>{split.venue}</span>
-                  <span className="value">{split.count}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="detail__note">No venue traffic was recorded.</p>
-          )}
         </div>
 
         <div className="detail__block">
@@ -84,6 +71,34 @@ export function AppDetail({ snapshot, app, now }: AppDetailProps) {
             Money mode: {appMoneyLabel(app)}. Last update {formatClock(new Date(now).toISOString())}.
           </p>
         </div>
+      </div>
+
+      <div className="detail__block">
+        <h4 className="detail__heading">Venue split</h4>
+        {app.venueSplit.length > 0 ? (
+          <div className="venue-table" role="table" aria-label="Venue diagnostics">
+            <div className="venue-table__row venue-table__head" role="row">
+              <span role="columnheader">Venue</span>
+              <span role="columnheader">Requests</span>
+              <span role="columnheader">429s</span>
+              <span role="columnheader">Headroom 429s</span>
+              <span role="columnheader">Worst queue</span>
+            </div>
+            {app.venueSplit.map((split) => (
+              <div className="venue-table__row" role="row" key={split.venue}>
+                <span role="cell">{split.venue}</span>
+                <span role="cell">{split.count}</span>
+                <span role="cell">{split.upstream429s ?? "Unknown"}</span>
+                <span role="cell">{split.headroom429s ?? "Unknown"}</span>
+                <span role="cell">
+                  {formatQueueWait({ ...app, queueWaitMs: split.queueWaitMs })}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="detail__note">No venue traffic was recorded.</p>
+        )}
       </div>
 
       <h4 className="detail__heading">Audit entries</h4>

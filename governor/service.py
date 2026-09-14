@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from governor.collector import GovernorCollector
 from governor.config import GOVERNOR_HOST, GOVERNOR_PORT
+from governor.direct_egress import run_direct_egress_audit
 from governor.models import InvalidControlSchema, RevisionConflict
 from governor.registry import APP_REGISTRY, MONEY_CONTROL
 from governor.security import (
@@ -77,6 +78,7 @@ def create_app(
     collector: GovernorCollector | None = None,
     now: Callable[[], datetime] = _utc_now,
     static_dir: Path | None = None,
+    direct_egress_audit: Callable[[], dict] = run_direct_egress_audit,
 ) -> FastAPI:
     session_manager = sessions or SessionManager(now=now)
     stop_event = asyncio.Event()
@@ -191,6 +193,13 @@ def create_app(
             raise HTTPException(
                 status_code=503, detail="control_state_unavailable"
             ) from error
+
+    @app.post(
+        "/api/v1/diagnostics/direct-egress",
+        dependencies=[Depends(require_mutation_auth)],
+    )
+    async def direct_egress() -> dict:
+        return await asyncio.to_thread(direct_egress_audit)
 
     def apply_control(scope: str, action: str, body: ControlBody) -> dict:
         try:

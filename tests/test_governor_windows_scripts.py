@@ -17,6 +17,8 @@ SCRIPTS = REPOSITORY_ROOT / "scripts"
 START_PS1 = SCRIPTS / "start-governor-hidden.ps1"
 START_VBS = SCRIPTS / "start-governor-hidden.vbs"
 INSTALL_PS1 = SCRIPTS / "install-governor-shortcut.ps1"
+SETUP_PS1 = SCRIPTS / "setup-throttledeck.ps1"
+README = REPOSITORY_ROOT / "README.md"
 
 GOVERNOR_PORT = "8778"
 BROKER_PORT = "8777"
@@ -64,10 +66,99 @@ def install_ps1() -> str:
     return read(INSTALL_PS1)
 
 
+@pytest.fixture(scope="module")
+def setup_ps1() -> str:
+    return read(SETUP_PS1)
+
+
 def test_all_three_scripts_exist_and_are_not_empty() -> None:
     for path in (START_PS1, START_VBS, INSTALL_PS1):
         assert path.is_file(), f"missing {path.name}"
         assert read(path).strip(), f"{path.name} is empty"
+
+
+def test_one_command_setup_script_exists_and_is_not_empty() -> None:
+    assert SETUP_PS1.is_file(), f"missing {SETUP_PS1.name}"
+    assert read(SETUP_PS1).strip(), f"{SETUP_PS1.name} is empty"
+
+
+def test_setup_preflights_the_supported_windows_machine(
+    setup_ps1: str,
+) -> None:
+    for required in (
+        "PSEdition",
+        "Windows",
+        "IsInRole",
+        "py -3.12",
+        "Microsoft\\Edge\\Application\\msedge.exe",
+        "8777",
+        "8778",
+    ):
+        assert required in setup_ps1
+
+
+def test_setup_creates_runtime_and_starts_the_existing_installers(
+    setup_ps1: str,
+) -> None:
+    for required in (
+        "$venvDirectory = Join-Path $root '.venv'",
+        "Scripts\\python.exe",
+        "-m venv $venvDirectory",
+        "-m pip install -e $root",
+        "install-broker-task.ps1",
+        "install-governor-shortcut.ps1",
+        "start-governor-hidden.vbs",
+        "http://127.0.0.1:8777/health",
+        "http://127.0.0.1:8778/health",
+    ):
+        assert required in setup_ps1
+
+
+def test_setup_is_rerunnable_and_preserves_per_user_configuration(
+    setup_ps1: str,
+) -> None:
+    assert "if (-not (Test-Path -LiteralPath $python))" in setup_ps1
+    assert "if (-not (Test-Path -LiteralPath $appsConfig))" in setup_ps1
+    assert "%LOCALAPPDATA%\\ThrottleDeck\\apps.toml" in setup_ps1
+
+
+def test_setup_keeps_conservative_rates_and_never_handles_exchange_credentials(
+    setup_ps1: str,
+) -> None:
+    assert "VENUE_BROKER_KALSHI_TIER" not in setup_ps1
+    assert "VENUE_BROKER_KALSHI_PERPS_READ_RATE" not in setup_ps1
+    for forbidden in (
+        "Read-Host",
+        "authorization",
+        "api_key",
+        "apikey",
+        "api-key",
+        "bearer ",
+        "password",
+        "secret",
+        "private key",
+    ):
+        assert forbidden not in setup_ps1.lower(), f"credential text found: {forbidden}"
+
+
+def test_setup_has_a_non_mutating_preflight_mode(setup_ps1: str) -> None:
+    assert "[switch]$PreflightOnly" in setup_ps1
+    guard = "if ($PreflightOnly)"
+    assert guard in setup_ps1
+    assert setup_ps1.index(guard) < setup_ps1.index("-m venv $venvDirectory")
+    assert setup_ps1.index(guard) < setup_ps1.index("install-broker-task.ps1")
+
+
+def test_readme_leads_with_the_one_command_windows_setup() -> None:
+    readme = read(README)
+    section = "## First run on Windows"
+    command = (
+        "powershell -ExecutionPolicy Bypass -File "
+        ".\\scripts\\setup-throttledeck.ps1"
+    )
+    assert section in readme
+    assert command in readme
+    assert readme.index(section) < readme.index("## Install and run")
 
 
 def test_launcher_stays_on_loopback(start_ps1: str) -> None:

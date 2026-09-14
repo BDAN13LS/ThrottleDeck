@@ -1,5 +1,5 @@
 /**
- * ThrottleDeck's compact iOS-dark visual tokens.
+ * ThrottleDeck's compact Obsidian-inspired neutral visual tokens.
  *
  * The palette, type scale, and geometry come from
  * `docs/design/governor/DESIGN-SYSTEM.md`. The palette stays cool and neutral:
@@ -7,31 +7,31 @@
  */
 
 :root {
-  --canvas: #07090d;
-  --surface: #11141a;
-  --surface-raised: #171b23;
-  --surface-hover: #1d222c;
+  --canvas: #0b0d10;
+  --surface: #111318;
+  --surface-raised: #15181e;
+  --surface-hover: #1b1f27;
 
-  --text: #f5f7fa;
-  --text-secondary: #b4bac5;
-  --text-muted: #7d8592;
+  --text: #f1f3f5;
+  --text-secondary: #b1b6c0;
+  --text-muted: #7e8591;
 
-  --border: #252b35;
-  --border-strong: #39414e;
+  --border: #292d35;
+  --border-strong: #3a404a;
 
-  --accent: #0a84ff;
-  --accent-hover: #409cff;
-  --accent-subtle: #102a43;
+  --accent: #6f8fb8;
+  --accent-hover: #82a0c6;
+  --accent-subtle: #202a38;
 
-  --healthy: #30d158;
-  --healthy-bg: #10291a;
-  --warning: #ff9f0a;
-  --warning-bg: #2a2114;
-  --danger: #ff453a;
-  --danger-bg: #301719;
+  --healthy: #62c47c;
+  --healthy-bg: #17241b;
+  --warning: #d9a657;
+  --warning-bg: #292219;
+  --danger: #e65f5f;
+  --danger-bg: #2d1b1d;
   --stop: #a9b0bc;
 
-  --band-allowed: color-mix(in srgb, var(--healthy-bg) 55%, var(--surface));
+  --band-allowed: var(--surface);
   --band-stopped: color-mix(in srgb, var(--danger-bg) 55%, var(--surface));
   --band-warning: color-mix(in srgb, var(--warning-bg) 55%, var(--surface));
   --band-neutral: color-mix(in srgb, var(--border) 45%, var(--surface));
@@ -44,9 +44,9 @@
   --space-6: 32px;
   --space-7: 48px;
 
-  --radius-card: 15px;
-  --radius-control: 10px;
-  --shadow-card: 0 10px 26px rgba(0, 0, 0, 0.2);
+  --radius-card: 8px;
+  --radius-control: 7px;
+  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.16);
 
   --font: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --page-pad: 18px;

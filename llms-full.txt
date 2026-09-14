@@ -23,8 +23,9 @@ back to a direct venue read.
   `/trade-api/v2` base.
 - Kalshi margin/perps reads use a separate weighted limiter and require an
   explicitly configured perps read rate.
-- This machine uses the Kalshi Advanced prediction tier with the documented
-  safety margin: 270 tokens/second refill and 540-token capacity.
+- A fresh install uses the Kalshi Basic prediction tier with the documented
+  safety margin: 180 tokens/second refill and 360-token capacity. Perps remain
+  disabled until their documented account rate is explicitly configured.
 - Polymarket US uses 18 requests/second and an 18-request rolling-second ceiling.
 
 Query strings and caller authentication headers pass through unchanged in
@@ -69,10 +70,23 @@ null gaps, not zeroes. Direct requests and WebSocket streams are explicitly
 outside Governor's measurement; the UI never claims those streams are active or
 idle.
 
+Expanded application details expose a per-venue recent request split, upstream
+429 count, 429s seen while the broker retained headroom, and worst broker queue
+wait. The manual authenticated `POST /api/v1/diagnostics/direct-egress` endpoint
+samples established Windows HTTPS connections only when an operator asks. It
+returns process name, PID, venue, and observation count; it never accepts or
+returns command lines or request material. A clear sample is not proof that no
+bypass exists, because short-lived connections can be missed.
+
 Both broker collection and dashboard polling use a one-miss grace period. One
 transient automatic miss preserves the last fresh sample without flashing an
 outage. Two consecutive misses show the warning. An older failed poll cannot
 overwrite a newer successful manual refresh.
+
+Five-second samples retain 6 hours and minute rollups retain 90 days. The 250 MB
+guard pauses history writes only, not controls. Recovery maintenance compacts the
+database only after a guard pause and eligible rollup, checkpoints the WAL again,
+then resumes collection if total database, WAL, and SHM storage is below the cap.
 
 Control mutations are never optimistic. The old state remains visible until the
 service returns a committed revision, and a revision conflict reloads the
@@ -95,11 +109,21 @@ nonce becomes an HttpOnly same-origin browser session.
 
 ## Windows operation
 
-`scripts/install-broker-task.ps1` installs the one ThrottleDeck Broker scheduled task.
-Do not invent or launch a second broker instance. Governor has one desktop
-shortcut installed by `scripts/install-governor-shortcut.ps1`; its VBS and
-PowerShell launchers keep consoles hidden, start Governor only when its local
-health endpoint is absent, and open Microsoft Edge in app mode.
+For a fresh Windows checkout, open elevated PowerShell and run
+`powershell -ExecutionPolicy Bypass -File .\scripts\setup-throttledeck.ps1`.
+The idempotent setup checks Windows, Python 3.12, Edge, administrator rights, and
+the local broker/control ports; creates `.venv` only when absent; installs runtime
+dependencies; registers the one broker task; preserves any existing per-user app
+configuration; creates the desktop shortcut; starts the control window hidden;
+and waits for both local health endpoints. It neither requests nor persists
+exchange account material. Add `-PreflightOnly` to validate the prerequisites
+without changing the machine.
+
+`scripts/install-broker-task.ps1` remains the one scheduled-task installer. Do
+not invent or launch a second broker instance. Governor has one desktop shortcut
+installed by `scripts/install-governor-shortcut.ps1`; its VBS and PowerShell
+launchers keep consoles hidden, start Governor only when its local health endpoint
+is absent, and open Microsoft Edge in app mode.
 
 ## Safe development workflow
 
