@@ -1,0 +1,127 @@
+# VenueBroker: detailed machine-readable context
+
+## Purpose
+
+VenueBroker is the one local owner of shared Polymarket US and Kalshi read
+budgets. Multiple bots share one public IP; independent per-process limiters can
+collectively exceed a venue ceiling even when each bot looks healthy. Every
+adopted caller sends reads through this service with an `X-Broker-Caller` label.
+
+The broker binds to `127.0.0.1:8777`, accepts only GET, performs explicit caching
+and single-flight coalescing, schedules callers through weighted classes, and
+admits upstream work through one budget per venue product. A missing broker is a
+hard failure: `broker_client.py` raises `BrokerUnavailableError` and never falls
+back to a direct venue read.
+
+## Active routing and budgets
+
+- `/pmus/<path>` routes public Polymarket US reads to
+  `https://gateway.polymarket.us/<path>`.
+- Retail `/v1/account`, `/v1/portfolio`, and `/v1/orders` reads route to
+  `https://api.polymarket.us/<path>`.
+- `/kalshi/<path>` routes prediction-market reads relative to Kalshi's
+  `/trade-api/v2` base.
+- Kalshi margin/perps reads use a separate weighted limiter and require an
+  explicitly configured perps read rate.
+- This machine uses the Kalshi Advanced prediction tier with the documented
+  safety margin: 270 tokens/second refill and 540-token capacity.
+- Polymarket US uses 18 requests/second and an 18-request rolling-second ceiling.
+
+Query strings and caller authentication headers pass through unchanged in
+memory. Authentication material is never logged, cached raw, or persisted.
+Unknown paths are not cached. See `README.md` and `venue_broker/config.py` for
+the complete weighted-cost and TTL tables.
+
+## Failure contract
+
+Venue responses preserve their status and body and carry
+`X-Venue-Broker-Source: venue`. Locally generated failures carry structured JSON
+and `X-Venue-Broker-Source: broker`. Important local outcomes include upstream
+timeout 504, upstream connection failure 502, broker closing 503, oversized
+weighted request 400, invalid batch cost 400, unconfigured perps budget 503,
+stopped broker access 423, and unavailable control state 503.
+
+VenueBroker's `/health` and `/metrics` endpoints are cheap local reads that do not
+consume venue capacity. A venue outage does not make `/health` fail and must not
+trigger a supervisor restart loop.
+
+## ThrottleDeck control window
+
+ThrottleDeck uses a separate per-user control plane on `127.0.0.1:8778`. It serves a
+React dashboard and authenticated same-origin control API; it never proxies venue
+traffic and never starts, stops, or restarts VenueBroker. Durable state, sampled
+history, rollups, maintenance, and the audit log live under
+`%LOCALAPPDATA%\ThrottleDeck`.
+
+The standalone Edge app opens at 940 by 700 pixels and remains freely resizable.
+Its visual system is cool near-black with graphite surfaces, cool-gray separators,
+iOS-style blue interaction accents, and semantic green, amber, and red. The
+startup viewport keeps complete budget details while application rows use a
+concise two-line form and Control activity starts collapsed to one priority row.
+The approximately 920 by 650 usable content area inside the 940 by 700 Windows
+frame is regression-tested for zero page overflow. It is also tested at 720 by
+480.
+
+Application-row traffic is measured brokered REST, not total bot activity. Each
+row exposes the exact recent count/window, the last brokered-REST request age,
+and adjacent-sample request deltas as a sparkline. Missing or reset intervals are
+null gaps, not zeroes. Direct requests and WebSocket streams are explicitly
+outside Governor's measurement; the UI never claims those streams are active or
+idle.
+
+Dashboard polling is serialized. One transient automatic miss preserves the last
+good sample without flashing an outage. Two consecutive misses show the warning.
+An older failed poll cannot overwrite a newer successful manual refresh.
+
+Control mutations are never optimistic. The old state remains visible until the
+service returns a committed revision, and a revision conflict reloads the
+authoritative snapshot. Broker-access controls affect brokered REST reads only;
+they do not stop processes, direct reads, or WebSockets. The configured new-money
+control does not cancel or flatten existing orders.
+
+Application IDs, display names, exact caller groups, paper/real-money labels,
+coverage notes, and the protected application are loaded from the operator's
+`%LOCALAPPDATA%\ThrottleDeck\apps.toml`. A neutral fallback ships as
+`governor/default-apps.toml`, and the shortcut installer copies it only when the
+per-user file does not already exist. Caller labels must be unique. Restart both
+ThrottleDeck and VenueBroker after a registry change so observation and
+broker-access policy use the same mapping. Configuration files, fixtures, docs,
+and screenshots must not expose an operator's private application names.
+
+The per-install control key stays in `%LOCALAPPDATA%\ThrottleDeck\control.key`, is
+sent only in memory, and never appears in a command line or log. A one-use launch
+nonce becomes an HttpOnly same-origin browser session.
+
+## Windows operation
+
+`scripts/install-broker-task.ps1` installs the one VenueBroker scheduled task.
+Do not invent or launch a second broker instance. Governor has one desktop
+shortcut installed by `scripts/install-governor-shortcut.ps1`; its VBS and
+PowerShell launchers keep consoles hidden, start Governor only when its local
+health endpoint is absent, and open Microsoft Edge in app mode.
+
+## Safe development workflow
+
+Read `AGENTS.md`, `README.md`, and the cited official venue documentation before
+changing service behavior. Never probe a live venue merely to infer an API shape
+that the venue already documents.
+
+Python verification:
+
+```powershell
+.\.venv\Scripts\pytest.exe -q
+.\.venv\Scripts\ruff.exe check .
+```
+
+Governor UI verification:
+
+```powershell
+npm --prefix ui test
+npm --prefix ui run typecheck
+npm --prefix ui run build
+npm --prefix ui run test:e2e
+```
+
+The UI build writes committed assets to `governor/static/`. Browser tests
+intercept every API request and call no venue. Changes near broker access or the
+configured money lock require tests proving they cannot self-enable unsafe state.

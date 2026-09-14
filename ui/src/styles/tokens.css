@@ -1,0 +1,64 @@
+/**
+ * ThrottleDeck's compact iOS-dark visual tokens.
+ *
+ * The palette, type scale, and geometry come from
+ * `docs/design/governor/DESIGN-SYSTEM.md`. The palette stays cool and neutral:
+ * no brown tint, gradients, glows, or glass effects.
+ */
+
+:root {
+  --canvas: #07090d;
+  --surface: #11141a;
+  --surface-raised: #171b23;
+  --surface-hover: #1d222c;
+
+  --text: #f5f7fa;
+  --text-secondary: #b4bac5;
+  --text-muted: #7d8592;
+
+  --border: #252b35;
+  --border-strong: #39414e;
+
+  --accent: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-subtle: #102a43;
+
+  --healthy: #30d158;
+  --healthy-bg: #10291a;
+  --warning: #ff9f0a;
+  --warning-bg: #2a2114;
+  --danger: #ff453a;
+  --danger-bg: #301719;
+  --stop: #a9b0bc;
+
+  --band-allowed: color-mix(in srgb, var(--healthy-bg) 55%, var(--surface));
+  --band-stopped: color-mix(in srgb, var(--danger-bg) 55%, var(--surface));
+  --band-warning: color-mix(in srgb, var(--warning-bg) 55%, var(--surface));
+  --band-neutral: color-mix(in srgb, var(--border) 45%, var(--surface));
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius-card: 15px;
+  --radius-control: 10px;
+  --shadow-card: 0 10px 26px rgba(0, 0, 0, 0.2);
+
+  --font: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --page-pad: 18px;
+  --grid-gap: 12px;
+  --control-height: 36px;
+
+  color-scheme: dark;
+}
+
+@media (max-width: 899px) {
+  :root {
+    --page-pad: 12px;
+    --grid-gap: 10px;
+  }
+}

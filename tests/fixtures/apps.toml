@@ -1,0 +1,24 @@
+[[apps]]
+id = "collector"
+name = "Signal Collector"
+callers = ["collector", "collector-scanner", "collector-us-trades"]
+money_mode = "paper"
+coverage_note = "Brokered REST is measured. Direct streams are not measured."
+
+[[apps]]
+id = "execution"
+name = "Execution Bot"
+callers = ["execution", "execution-lag", "execution-whales", "execution-x", "execution-watch-football", "execution-reconcile", "execution-cockpit", "execution-doctor"]
+money_mode = "real"
+coverage_note = "Brokered REST is measured. Order submission is separate."
+
+[[apps]]
+id = "research"
+name = "Market Research"
+callers = ["research"]
+money_mode = "paper"
+coverage_note = "Brokered REST is measured. WebSockets are not measured."
+
+[money_control]
+app_id = "execution"
+confirmation_phrase = "UNLOCK NEW ORDERS"

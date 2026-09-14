@@ -1,0 +1,27 @@
+# Copy this file to %LOCALAPPDATA%\ThrottleDeck\apps.toml and edit it for your bots.
+# IDs and callers are stable machine identifiers; names are presentation only.
+
+[[apps]]
+id = "collector"
+name = "Signal Collector"
+callers = ["signal-collector"]
+money_mode = "paper"
+coverage_note = "Brokered REST is measured. Direct streams are outside Governor's view."
+
+[[apps]]
+id = "execution"
+name = "Execution Bot"
+callers = ["execution-bot"]
+money_mode = "real"
+coverage_note = "Brokered REST is measured. Order submission remains a separate path."
+
+[[apps]]
+id = "research"
+name = "Market Research"
+callers = ["market-research"]
+money_mode = "paper"
+coverage_note = "Brokered REST is measured. WebSockets remain direct by design."
+
+[money_control]
+app_id = "execution"
+confirmation_phrase = "UNLOCK NEW ORDERS"

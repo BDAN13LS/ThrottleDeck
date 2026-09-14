@@ -1,0 +1,50 @@
+# Who gets what share of a venue's budget when they compete.
+#
+# An unconfigured caller falls to `defaults` — which is deliberately NOT the
+# lowest class, so a new bot works sensibly before anyone configures it. That
+# cuts the other way too: a bot meant to be `bulk` that sends an unconfigured
+# name silently gets `standard`, which is twice the share it was supposed to
+# have. Every process a bot runs therefore belongs here by name.
+
+[defaults]
+class = "standard"
+
+[classes.trading]
+weight = 8
+
+[classes.standard]
+weight = 2
+
+[classes.bulk]
+weight = 1
+
+# Example latency-sensitive collector.
+[callers.collector]
+class = "trading"
+[callers.collector-scanner]
+class = "trading"
+[callers.collector-us-trades]
+class = "trading"
+
+# Example bulk observer. Promote whichever process becomes latency-sensitive;
+# a class is policy, not a property of a project.
+[callers.execution]
+class = "bulk"
+[callers.execution-lag]
+class = "bulk"
+[callers.execution-whales]
+class = "bulk"
+[callers.execution-x]
+class = "bulk"
+[callers.execution-watch-football]
+class = "bulk"
+[callers.execution-reconcile]
+class = "bulk"
+[callers.execution-cockpit]
+class = "bulk"
+[callers.execution-doctor]
+class = "bulk"
+
+# Example standard research worker.
+[callers.research]
+class = "standard"

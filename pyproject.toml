@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "venue-broker"
+version = "0.1.0"
+description = "One local request budget shared by every venue client"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.116,<1",
+    "filelock>=3.18,<4",
+    "httpx>=0.28,<1",
+    "uvicorn>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<10",
+    "pytest-asyncio>=1,<2",
+    "ruff>=0.12,<1",
+]
+
+[project.scripts]
+governor = "governor.__main__:main"
+venue-broker = "venue_broker.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["governor", "venue_broker"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--basetemp=.pytest-tmp -m 'not integration'"
+markers = [
+    "integration: deliberately call the live venue contracts",
+]
+
+[tool.ruff]
+extend-exclude = [".claude"]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "RUF"]
