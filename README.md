@@ -323,9 +323,9 @@ broker counter deltas. Unknown/reset intervals remain chart gaps rather than fak
 zeroes. The screen explicitly says WebSockets are not measured; it never turns
 REST silence into a claim that an application or direct stream is idle. Control
 activity starts as one expandable priority row.
-Background refreshes are serialized: one transient polling miss keeps
-the last good sample without flashing an outage, while two consecutive misses
-surface the warning.
+Both polling hops use a one-miss grace period. One transient miss keeps the last
+fresh sample without flashing an outage; two consecutive misses surface the
+warning.
 
 ![ThrottleDeck in its 940 by 700 dark startup layout, using synthetic example applications](docs/design/governor/governor-dark-940x700.png)
 

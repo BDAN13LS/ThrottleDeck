@@ -69,9 +69,10 @@ null gaps, not zeroes. Direct requests and WebSocket streams are explicitly
 outside Governor's measurement; the UI never claims those streams are active or
 idle.
 
-Dashboard polling is serialized. One transient automatic miss preserves the last
-good sample without flashing an outage. Two consecutive misses show the warning.
-An older failed poll cannot overwrite a newer successful manual refresh.
+Both broker collection and dashboard polling use a one-miss grace period. One
+transient automatic miss preserves the last fresh sample without flashing an
+outage. Two consecutive misses show the warning. An older failed poll cannot
+overwrite a newer successful manual refresh.
 
 Control mutations are never optimistic. The old state remains visible until the
 service returns a committed revision, and a revision conflict reloads the

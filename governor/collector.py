@@ -62,6 +62,7 @@ class GovernorCollector:
         self._now = now
         latest = store.latest_sample()
         self._last_good = latest if latest and latest.metrics else None
+        self._consecutive_failures = 0
 
     @staticmethod
     def _validate_metrics(payload: Any) -> dict[str, Any]:
@@ -85,15 +86,30 @@ class GovernorCollector:
             response = await self._client.get("/metrics")
             response.raise_for_status()
         except (httpx.HTTPError, ValueError, TypeError, AttributeError):
+            self._consecutive_failures += 1
+            within_grace = self._last_good is not None and (
+                self._consecutive_failures == 1
+            )
+            last_good_metrics = self._last_good.metrics if self._last_good else {}
+            last_good_source_time = (
+                _parse_timestamp(last_good_metrics.get("sampled_at"))
+                if self._last_good
+                else observed_at
+            )
             sample = BrokerSample(
                 sampled_at=observed_at,
                 instance_id=(self._last_good.instance_id if self._last_good else None),
-                status="unavailable",
-                metrics=(self._last_good.metrics if self._last_good else {}),
-                stale=True,
-                error="broker_unavailable",
+                status="ok" if within_grace else "unavailable",
+                metrics=last_good_metrics,
+                stale=(
+                    observed_at - last_good_source_time > STALE_AFTER
+                    if within_grace
+                    else True
+                ),
+                error="broker_poll_missed" if within_grace else "broker_unavailable",
             )
         else:
+            self._consecutive_failures = 0
             try:
                 metrics = self._validate_metrics(response.json())
             except (ValueError, TypeError):

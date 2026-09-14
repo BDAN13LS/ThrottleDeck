@@ -94,7 +94,9 @@ async def test_stale_source_and_unconfigured_perps_are_preserved(store) -> None:
 
 
 @pytest.mark.asyncio
-async def test_broker_down_preserves_last_good_as_stale(store) -> None:
+async def test_one_missed_poll_keeps_fresh_sample_before_marking_broker_down(
+    store,
+) -> None:
     calls = 0
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -111,12 +113,17 @@ async def test_broker_down_preserves_last_good_as_stale(store) -> None:
     ) as client:
         collector = GovernorCollector(store, client=client, now=lambda: NOW)
         good = await collector.sample_once()
-        failed = await collector.sample_once()
+        missed_once = await collector.sample_once()
+        missed_twice = await collector.sample_once()
 
-    assert failed.metrics == good.metrics
-    assert failed.stale is True
-    assert failed.status == "unavailable"
-    assert failed.error == "broker_unavailable"
+    assert missed_once.metrics == good.metrics
+    assert missed_once.stale is False
+    assert missed_once.status == "ok"
+    assert missed_once.error == "broker_poll_missed"
+    assert missed_twice.metrics == good.metrics
+    assert missed_twice.stale is True
+    assert missed_twice.status == "unavailable"
+    assert missed_twice.error == "broker_unavailable"
 
 
 @pytest.mark.asyncio
