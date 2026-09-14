@@ -19,7 +19,7 @@ describe("ActivityFeed", () => {
     expect(screen.getAllByText("Application started")).toHaveLength(2);
     expect(
       screen.getByText(
-        "Polymarket throttled this machine while VenueBroker still had room.",
+        "Polymarket throttled this machine while ThrottleDeck Broker still had room.",
       ),
     ).toBeVisible();
   });
@@ -85,7 +85,7 @@ describe("ActivityFeed", () => {
     expect(screen.getByText("Possible direct caller")).toBeVisible();
     expect(
       screen.getByText(
-        "Polymarket throttled this machine while VenueBroker still had room.",
+        "Polymarket throttled this machine while ThrottleDeck Broker still had room.",
       ),
     ).toBeVisible();
     expect(screen.getByText("Broker started")).toBeVisible();

@@ -68,7 +68,7 @@ No additional eyebrow, promotional text, navigation, badges, or labels may be in
 
 - `ThrottleDeck`
 - `API Control`
-- `VenueBroker healthy`
+- `ThrottleDeck Broker healthy`
 - `Healthy`
 - `Updated now`
 - `Refresh`
@@ -107,7 +107,7 @@ No additional eyebrow, promotional text, navigation, badges, or labels may be in
 - `Stop access`
 - `Control activity`
 - `Possible direct caller`
-- `Polymarket throttled this machine while VenueBroker still had room.`
+- `Polymarket throttled this machine while ThrottleDeck Broker still had room.`
 - `Broker started`
 - `Access policy`
 - `Application started`
@@ -158,7 +158,7 @@ without horizontal or vertical page scrolling. At
 
 - No sidebar, marketing hero, search, tabs, or decorative dashboard navigation.
 - No monthly quota or reset clock without an authoritative source.
-- No claim that orders pass through VenueBroker.
+- No claim that orders pass through ThrottleDeck Broker.
 - No claim that a paper application uses real money.
 - No process name, IP address, or direct-caller identity unless a later verified feature supplies it.
 - No order, cancel, flatten, or restart-broker control.

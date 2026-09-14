@@ -84,11 +84,11 @@ describe("App", () => {
   it("keeps recovery visible and fabricates nothing when the broker is down", async () => {
     const { container } = renderApp(snapshotFetcher(brokerDown));
     expect(
-      await screen.findByText("VenueBroker is not responding"),
+      await screen.findByText("ThrottleDeck Broker is not responding"),
     ).toBeVisible();
     expect(
       screen.getByText(
-        "VenueBroker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
+        "ThrottleDeck Broker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
       ),
     ).toBeVisible();
     expect(screen.queryByText("0 / 0")).toBeNull();
@@ -101,7 +101,7 @@ describe("App", () => {
       broker: { state: "healthy", sampled_at: "2026-09-13T14:20:01.000Z" },
     });
     renderApp(snapshotFetcher(stale));
-    expect(await screen.findByText("VenueBroker state is stale")).toBeVisible();
+    expect(await screen.findByText("ThrottleDeck Broker state is stale")).toBeVisible();
     expect(screen.queryByText("Updated now")).toBeNull();
   });
 

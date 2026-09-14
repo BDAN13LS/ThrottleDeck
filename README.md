@@ -31,8 +31,8 @@ comparison that informed the implementation.
                                   |
                                   v
                     +---------------------------+
-                    |  VenueBroker :8777        |
-                    |  loopback, GET only       |
+                    | ThrottleDeck Broker :8777 |
+                    | loopback, GET only        |
                     +---------------------------+
                                   |
                                   v
@@ -284,7 +284,7 @@ Past dates become zero delay; invalid or non-finite values use exponential backo
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m venue_broker
+.\.venv\Scripts\throttledeck-broker.exe
 ```
 
 The host is hardcoded to `127.0.0.1`; only the port can be changed with
@@ -308,7 +308,7 @@ ThrottleDeck is the per-user control window for brokered access. It binds its ow
 hardcoded loopback address on port `8778`, separate from the broker on `8777`,
 and it is not a second broker: it reads `GET /api/v1/snapshot` and posts the
 explicit control actions that stop brokered REST access or the configured new-order
-lock. It never starts, stops, or restarts the shared VenueBroker task, and it
+lock. It never starts, stops, or restarts the shared ThrottleDeck Broker task, and it
 never becomes a second supervised instance. Controls never update optimistically:
 a stop button keeps its prior state until the service returns the new revision,
 and a revision conflict reloads the authoritative snapshot.
@@ -353,7 +353,7 @@ confirmation_phrase = "UNLOCK NEW ORDERS"
 ```
 
 Caller labels must be unique across applications. Restart ThrottleDeck and
-VenueBroker after changing the file so the dashboard registry and broker access
+ThrottleDeck Broker after changing the file so the dashboard registry and broker access
 policy load the same mapping. Existing stop states are preserved; a newly added
 application starts allowed. The screenshot above is generated from synthetic
 fixtures, so a public checkout does not expose an operator's bot names or usage.
@@ -393,7 +393,7 @@ to 25 seconds for that health check, redirects service output to
 Microsoft Edge in `--app` mode with a one-use launch nonce. The per-install
 control key stays in `%LOCALAPPDATA%\ThrottleDeck\control.key` and is only sent in
 memory, never on a command line and never in a log. No console window is shown,
-no scheduled task is registered, and the existing VenueBroker task is untouched.
+no scheduled task is registered, and the existing ThrottleDeck Broker task is untouched.
 Edge receives `--window-size=940,700` so each shortcut launch starts as a compact
 utility window rather than occupying most of the screen.
 

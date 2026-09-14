@@ -332,7 +332,10 @@ def _activity(
                 "at": latest.sampled_at.isoformat(),
                 "kind": "broker-restarted",
                 "severity": "info",
-                "detail": "VenueBroker restarted; recent counters began a new window.",
+                "detail": (
+                    "ThrottleDeck Broker restarted; recent counters began a new "
+                    "window."
+                ),
                 "app_id": None,
             }
         )
@@ -345,7 +348,7 @@ def _activity(
                 "kind": "possible-direct-caller",
                 "severity": "warning",
                 "detail": (
-                    "Polymarket throttled this machine while VenueBroker still "
+                    "Polymarket throttled this machine while ThrottleDeck Broker still "
                     "had room."
                 ),
                 "app_id": None,
@@ -358,8 +361,8 @@ def _activity(
                 "kind": "broker-update-required",
                 "severity": "warning",
                 "detail": (
-                    "VenueBroker is healthy but needs a restart to publish current "
-                    "metrics."
+                    "ThrottleDeck Broker is healthy but needs a restart to publish "
+                    "current metrics."
                 ),
                 "app_id": None,
             }
@@ -374,7 +377,7 @@ def _activity(
                 ),
                 "kind": "broker-unavailable",
                 "severity": "critical",
-                "detail": "VenueBroker is not responding.",
+                "detail": "ThrottleDeck Broker is not responding.",
                 "app_id": None,
             }
         )

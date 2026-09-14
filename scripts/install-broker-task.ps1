@@ -47,16 +47,16 @@ $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew `
 $taskPrincipal = New-ScheduledTaskPrincipal -UserId $env:USERNAME `
     -LogonType S4U -RunLevel Limited
 
-Register-ScheduledTask -TaskName 'VenueBroker' -Action $action `
+Register-ScheduledTask -TaskName 'ThrottleDeck Broker' -Action $action `
     -Trigger @($atBoot, $daily) -Settings $settings -Principal $taskPrincipal -Force `
     -Description ('Shared request broker for polymarket.us and Kalshi. One ' +
         'process owns the per-IP budget so the bots on this machine stop ' +
         'breaching it together. Loopback only; holds no credentials.') | Out-Null
 
-$task = Get-ScheduledTask -TaskName 'VenueBroker'
+$task = Get-ScheduledTask -TaskName 'ThrottleDeck Broker'
 Write-Host ("installed: {0}, logon type {1}" -f $task.State, $task.Principal.LogonType)
 Write-Host "starting it now..."
-Start-ScheduledTask -TaskName 'VenueBroker'
+Start-ScheduledTask -TaskName 'ThrottleDeck Broker'
 Start-Sleep -Seconds 6
 $up = Get-NetTCPConnection -State Listen -LocalPort 8777 -ErrorAction SilentlyContinue
 if ($up) { Write-Host "broker is listening on 127.0.0.1:8777" }

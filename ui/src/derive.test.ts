@@ -145,14 +145,14 @@ describe("sample age and staleness", () => {
       ...stale,
       broker: { ...stale.broker, sampledAt: "2026-09-13T14:21:00.000Z" },
     };
-    expect(brokerHealthLabel(aged, NOW)).not.toBe("VenueBroker healthy");
+    expect(brokerHealthLabel(aged, NOW)).not.toBe("ThrottleDeck Broker healthy");
     expect(formatAge(aged.broker.sampledAt, NOW)).not.toBe("Updated now");
   });
 
   it("treats a stopped broker as its own state, not merely stale", () => {
     const down = snapshotOf("brokerDown");
     expect(isSnapshotStale(down, NOW)).toBe(false);
-    expect(brokerHealthLabel(down, NOW)).toBe("VenueBroker is not responding");
+    expect(brokerHealthLabel(down, NOW)).toBe("ThrottleDeck Broker is not responding");
   });
 
   it("reports an older broker build as needing an update, not as offline", () => {
@@ -161,7 +161,7 @@ describe("sample age and staleness", () => {
       ...current,
       broker: { ...current.broker, state: "degraded" as const },
     };
-    expect(brokerHealthLabel(outdated, NOW)).toBe("VenueBroker update required");
+    expect(brokerHealthLabel(outdated, NOW)).toBe("ThrottleDeck Broker update required");
   });
 });
 
@@ -196,7 +196,7 @@ describe("money lock copy", () => {
     const view = moneyLockView(snapshotOf("brokerDown").tradeLock);
     expect(view.stateLabel).toBe("Unavailable");
     expect(view.detail).toBe(
-      "VenueBroker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
+      "ThrottleDeck Broker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
     );
     expect(view.canUnlock).toBe(false);
     expect(view.canStop).toBe(true);
@@ -289,7 +289,7 @@ describe("activity", () => {
     expect(directCallerAlert(snapshotOf("suspectedDirectCaller"))).toBe(true);
     expect(
       possibleDirectCallerEvent(snapshotOf("suspectedDirectCaller"))?.detail,
-    ).toBe("Polymarket throttled this machine while VenueBroker still had room.");
+    ).toBe("Polymarket throttled this machine while ThrottleDeck Broker still had room.");
   });
 
   it("raises the alert from a warning event alone", () => {

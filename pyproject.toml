@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "venue-broker"
+name = "throttledeck"
 version = "0.1.0"
-description = "One local request budget shared by every venue client"
+description = "Local shared API rate budgets with a compact operator control deck"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.116,<1",
@@ -22,6 +22,8 @@ dev = [
 ]
 
 [project.scripts]
+throttledeck = "governor.__main__:main"
+throttledeck-broker = "venue_broker.__main__:main"
 governor = "governor.__main__:main"
 venue-broker = "venue_broker.__main__:main"
 

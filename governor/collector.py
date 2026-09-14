@@ -1,4 +1,4 @@
-"""Local-only VenueBroker observation and restart-aware history derivation."""
+"""Local-only ThrottleDeck Broker observation and restart-aware history derivation."""
 
 from __future__ import annotations
 

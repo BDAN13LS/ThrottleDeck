@@ -1,4 +1,4 @@
-"""Governor local control plane for VenueBroker."""
+"""Governor local control plane for ThrottleDeck Broker."""
 
 from governor.models import CONTROL_SCHEMA_VERSION
 

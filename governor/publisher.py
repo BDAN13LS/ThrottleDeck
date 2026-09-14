@@ -1,4 +1,4 @@
-"""Atomic publication of the minimal VenueBroker access policy."""
+"""Atomic publication of the minimal ThrottleDeck Broker access policy."""
 
 from __future__ import annotations
 

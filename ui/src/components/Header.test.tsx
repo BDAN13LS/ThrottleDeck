@@ -18,7 +18,7 @@ describe("Header", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "ThrottleDeck — API Control",
     );
-    expect(screen.getByText("VenueBroker healthy")).toBeVisible();
+    expect(screen.getByText("ThrottleDeck Broker healthy")).toBeVisible();
     expect(screen.getByText("Updated now")).toBeVisible();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
   });
@@ -38,7 +38,7 @@ describe("Header", () => {
         onRefresh={() => undefined}
       />,
     );
-    expect(screen.getByText("VenueBroker state is stale")).toBeVisible();
+    expect(screen.getByText("ThrottleDeck Broker state is stale")).toBeVisible();
     expect(screen.getByText("Updated 3m ago")).toBeVisible();
     expect(screen.queryByText("Updated now")).toBeNull();
   });
@@ -52,8 +52,8 @@ describe("Header", () => {
         onRefresh={() => undefined}
       />,
     );
-    expect(screen.getByText("VenueBroker is not responding")).toBeVisible();
-    expect(screen.queryByText("VenueBroker healthy")).toBeNull();
+    expect(screen.getByText("ThrottleDeck Broker is not responding")).toBeVisible();
+    expect(screen.queryByText("ThrottleDeck Broker healthy")).toBeNull();
   });
 
   it("requests a fresh sample and reports that a refresh is in flight", async () => {

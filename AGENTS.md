@@ -1,6 +1,6 @@
-# Working in VenueBroker
+# Working in ThrottleDeck Broker
 
-VenueBroker is the single loopback-only owner of shared Polymarket US and Kalshi
+ThrottleDeck Broker is the single loopback-only owner of shared Polymarket US and Kalshi
 read budgets on one machine. Several applications can share one public egress IP,
 so independent limiters can each look healthy while collectively breaching a venue
 limit. Call the local broker instead of probing a venue to discover its shape;
@@ -42,7 +42,7 @@ installer under [scripts/](scripts/). Do not invent a second scheduled instance.
 ## ThrottleDeck control window
 
 Governor is a separate loopback-only control service on `127.0.0.1:8778`; it is
-not a second broker and must never start, stop, or supervise VenueBroker. Its
+not a second broker and must never start, stop, or supervise ThrottleDeck Broker. Its
 React source is in `ui/`, while the committed production bundle is in
 `governor/static/`. Rebuild the bundle after every UI change.
 
@@ -60,7 +60,7 @@ Application IDs, display names, caller groups, coverage notes, money badges, and
 the protected application come from `%LOCALAPPDATA%\ThrottleDeck\apps.toml`. The
 checked-in `governor/default-apps.toml`, UI fixtures, documentation, and screenshots
 must stay synthetic and operator-neutral. Config changes take effect after both
-ThrottleDeck and VenueBroker restart; never put credentials in this file.
+ThrottleDeck and ThrottleDeck Broker restart; never put credentials in this file.
 
 ```powershell
 npm --prefix ui test

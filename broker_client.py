@@ -1,6 +1,6 @@
 """Tiny synchronous client for the local venue broker.
 
-Copy this file into another repository or put VenueBroker on ``PYTHONPATH``.
+Copy this file into another repository or put ThrottleDeck Broker on ``PYTHONPATH``.
 The broker never silently falls back to a venue: an unavailable local service is
 an operational error because direct fallback would recreate the shared-IP breach.
 Authentication headers remain owned by the caller and are forwarded by the broker.

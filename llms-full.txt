@@ -1,8 +1,8 @@
-# VenueBroker: detailed machine-readable context
+# ThrottleDeck Broker: detailed machine-readable context
 
 ## Purpose
 
-VenueBroker is the one local owner of shared Polymarket US and Kalshi read
+ThrottleDeck Broker is the one local owner of shared Polymarket US and Kalshi read
 budgets. Multiple bots share one public IP; independent per-process limiters can
 collectively exceed a venue ceiling even when each bot looks healthy. Every
 adopted caller sends reads through this service with an `X-Broker-Caller` label.
@@ -41,7 +41,7 @@ timeout 504, upstream connection failure 502, broker closing 503, oversized
 weighted request 400, invalid batch cost 400, unconfigured perps budget 503,
 stopped broker access 423, and unavailable control state 503.
 
-VenueBroker's `/health` and `/metrics` endpoints are cheap local reads that do not
+ThrottleDeck Broker's `/health` and `/metrics` endpoints are cheap local reads that do not
 consume venue capacity. A venue outage does not make `/health` fail and must not
 trigger a supervisor restart loop.
 
@@ -49,7 +49,7 @@ trigger a supervisor restart loop.
 
 ThrottleDeck uses a separate per-user control plane on `127.0.0.1:8778`. It serves a
 React dashboard and authenticated same-origin control API; it never proxies venue
-traffic and never starts, stops, or restarts VenueBroker. Durable state, sampled
+traffic and never starts, stops, or restarts ThrottleDeck Broker. Durable state, sampled
 history, rollups, maintenance, and the audit log live under
 `%LOCALAPPDATA%\ThrottleDeck`.
 
@@ -84,7 +84,7 @@ coverage notes, and the protected application are loaded from the operator's
 `%LOCALAPPDATA%\ThrottleDeck\apps.toml`. A neutral fallback ships as
 `governor/default-apps.toml`, and the shortcut installer copies it only when the
 per-user file does not already exist. Caller labels must be unique. Restart both
-ThrottleDeck and VenueBroker after a registry change so observation and
+ThrottleDeck and ThrottleDeck Broker after a registry change so observation and
 broker-access policy use the same mapping. Configuration files, fixtures, docs,
 and screenshots must not expose an operator's private application names.
 
@@ -94,7 +94,7 @@ nonce becomes an HttpOnly same-origin browser session.
 
 ## Windows operation
 
-`scripts/install-broker-task.ps1` installs the one VenueBroker scheduled task.
+`scripts/install-broker-task.ps1` installs the one ThrottleDeck Broker scheduled task.
 Do not invent or launch a second broker instance. Governor has one desktop
 shortcut installed by `scripts/install-governor-shortcut.ps1`; its VBS and
 PowerShell launchers keep consoles hidden, start Governor only when its local

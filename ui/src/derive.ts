@@ -28,10 +28,10 @@ export const COPY = {
   refresh: "Refresh",
   updatedNow: "Updated now",
   healthy: "Healthy",
-  brokerHealthy: "VenueBroker healthy",
-  brokerNotResponding: "VenueBroker is not responding",
-  brokerUpdateRequired: "VenueBroker update required",
-  brokerStale: "VenueBroker state is stale",
+  brokerHealthy: "ThrottleDeck Broker healthy",
+  brokerNotResponding: "ThrottleDeck Broker is not responding",
+  brokerUpdateRequired: "ThrottleDeck Broker update required",
+  brokerStale: "ThrottleDeck Broker state is stale",
   allowed: "Allowed",
   stopped: "Stopped",
   stopping: "Stopping",
@@ -61,7 +61,7 @@ export const COPY = {
   recentActivity: "Control activity",
   possibleDirectCaller: "Possible direct caller",
   directCallerDetail:
-    "Polymarket throttled this machine while VenueBroker still had room.",
+    "Polymarket throttled this machine while ThrottleDeck Broker still had room.",
   notApplied: "Not applied — Governor did not confirm the change.",
   unknownValue: "Unknown",
 } as const;
@@ -357,7 +357,7 @@ export function moneyLockView(lock: MoneyLock): MoneyLockView {
         heading,
         stateLabel: COPY.unavailable,
         detail:
-          `VenueBroker is not responding. New ${lock.appName} orders remain locked unless Governor can prove otherwise.`,
+          `ThrottleDeck Broker is not responding. New ${lock.appName} orders remain locked unless Governor can prove otherwise.`,
         banner:
           `New ${lock.appName} orders remain locked while Governor cannot prove the lock is unlocked.`,
         actionLabel: COPY.stopNewMoneyOrders,

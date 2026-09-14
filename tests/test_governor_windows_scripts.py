@@ -3,7 +3,7 @@
 These tests read the shipped Windows scripts as text. They assert the operating
 rules that keep Governor loopback-only, single-instance, console-free, and free
 of credential material. They never execute a script and never touch the
-existing VenueBroker scheduled task.
+existing ThrottleDeck Broker scheduled task.
 """
 
 from __future__ import annotations
@@ -189,7 +189,9 @@ def test_launcher_registers_no_task_and_stops_nothing(
         for command in forbidden_commands():
             assert command not in script, f"launcher must not use {command}"
     for line in executable_lines(start_ps1):
-        assert "VenueBroker" not in line, "the broker task name may only be explained"
+        assert "ThrottleDeck Broker" not in line, (
+            "the broker task name may only be explained"
+        )
         assert "-TaskName" not in line
 
 
@@ -214,7 +216,7 @@ def test_shortcut_installer_needs_no_elevation_and_no_task(install_ps1: str) -> 
     for command in forbidden_commands():
         assert command not in install_ps1, f"installer must not use {command}"
     for line in executable_lines(install_ps1):
-        assert "VenueBroker" not in line
+        assert "ThrottleDeck Broker" not in line
         assert "-TaskName" not in line
 
 

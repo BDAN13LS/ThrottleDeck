@@ -198,7 +198,7 @@ test.describe("Governor dashboard", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "ThrottleDeck — API Control",
     );
-    await expect(page.getByText("VenueBroker healthy")).toBeVisible();
+    await expect(page.getByText("ThrottleDeck Broker healthy")).toBeVisible();
     await expect(page.getByText("Updated now")).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Execution Bot new money orders" }),
@@ -326,14 +326,14 @@ test.describe("Governor dashboard", () => {
   });
 
   test("does not flash an outage for one missed background refresh", async ({ page }) => {
-    await expect(page.getByText("VenueBroker healthy")).toBeVisible();
+    await expect(page.getByText("ThrottleDeck Broker healthy")).toBeVisible();
     governor.getFailuresRemaining = 1;
 
     await expect.poll(() => governor.getFailureCount, { timeout: 7_000 }).toBe(1);
     await expect(
       page.getByText(/This window is showing the last good sample/),
     ).toHaveCount(0);
-    await expect(page.getByText("VenueBroker healthy")).toBeVisible();
+    await expect(page.getByText("ThrottleDeck Broker healthy")).toBeVisible();
   });
 
   test("keeps every control keyboard reachable with a visible focus ring", async ({
@@ -452,7 +452,7 @@ test.describe("Governor dashboard", () => {
   test("labels a stale sample with its real age and never as current", async ({ page }) => {
     governor.sampledAt = () => new Date(Date.now() - 240_000).toISOString();
     await page.reload();
-    await expect(page.getByText("VenueBroker state is stale")).toBeVisible();
+    await expect(page.getByText("ThrottleDeck Broker state is stale")).toBeVisible();
     await expect(page.getByText("Updated 4m ago")).toBeVisible();
     await expect(page.getByText("Updated now")).toBeHidden();
   });
@@ -463,10 +463,10 @@ test.describe("Governor dashboard", () => {
     governor.base = brokerDown;
     governor.brokerState = "down";
     await page.reload();
-    await expect(page.getByText("VenueBroker is not responding").first()).toBeVisible();
+    await expect(page.getByText("ThrottleDeck Broker is not responding").first()).toBeVisible();
     await expect(
       page.getByText(
-        "VenueBroker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
+        "ThrottleDeck Broker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
       ),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Unlock" })).toHaveCount(0);
@@ -492,7 +492,7 @@ test.describe("Governor dashboard", () => {
     await expect(page.getByRole("rowheader", { name: /Unassigned callers/ })).toBeVisible();
     await expect(page.getByText("Possible direct caller").first()).toBeVisible();
     await expect(
-      page.getByText("Polymarket throttled this machine while VenueBroker still had room.").first(),
+      page.getByText("Polymarket throttled this machine while ThrottleDeck Broker still had room.").first(),
     ).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });

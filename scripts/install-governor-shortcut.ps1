@@ -3,7 +3,7 @@
 # Run this as the signed-in user. No elevation is needed: the shortcut belongs
 # to this account, and the hidden launcher starts the per-user Governor service.
 # This does not create a scheduled task, does not register a second instance,
-# and does not touch the existing VenueBroker shared-task process.
+# and does not touch the existing ThrottleDeck Broker shared-task process.
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot

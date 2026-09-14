@@ -1,7 +1,7 @@
 # Start Governor hidden when it is not already up, then open its own window.
 #
 # Governor is a per-user control plane on 127.0.0.1:8778. This launcher never
-# starts, stops, or restarts the existing VenueBroker shared-task process: that
+# starts, stops, or restarts the existing ThrottleDeck Broker shared-task process: that
 # service owns 127.0.0.1:8777 and exactly one process owns the venue budget.
 # Governor is separate and must not become a second supervised instance.
 #

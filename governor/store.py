@@ -373,7 +373,8 @@ class ControlStore:
         except Exception:
             # The durable state is already committed.  Leaving an older
             # all-allowed policy in place would make that failure unsafe, so
-            # invalidate the published view and force VenueBroker to fail closed.
+            # invalidate the published view and force the ThrottleDeck Broker
+            # to fail closed.
             self.policy_target.unlink(missing_ok=True)
             raise
         return record

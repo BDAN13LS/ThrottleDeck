@@ -1112,8 +1112,8 @@ code {
 /* Edge's 940x700 outer window leaves roughly 650px below the Windows chrome. */
 @media (min-width: 900px) and (max-width: 999px) and (max-height: 675px) {
   .shell {
-    gap: var(--space-2);
-    padding: 10px var(--space-3);
+    gap: 6px;
+    padding: 8px var(--space-3);
   }
 
   .header {
@@ -1121,17 +1121,17 @@ code {
   }
 
   .strip {
-    gap: var(--space-2);
-    padding: 10px var(--space-3);
+    gap: 6px;
+    padding: 8px var(--space-3);
   }
 
   .budget {
-    gap: 6px;
-    padding: 10px var(--space-3);
+    gap: 4px;
+    padding: 8px var(--space-3);
   }
 
   .budget__footer {
-    padding-top: 6px;
+    padding-top: 4px;
   }
 
   .applications {
@@ -1148,7 +1148,7 @@ code {
 
   .table th,
   .table td {
-    padding: 6px var(--space-3);
+    padding: 4px var(--space-3);
   }
 
   .activity {

@@ -89,7 +89,7 @@ describe("SafetyStrip", () => {
     expect(within(moneyGroup()).getByText("Unavailable")).toBeVisible();
     expect(
       screen.getByText(
-        "VenueBroker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
+        "ThrottleDeck Broker is not responding. New Execution Bot orders remain locked unless Governor can prove otherwise.",
       ),
     ).toBeVisible();
     expect(screen.queryByRole("button", { name: "Unlock" })).toBeNull();
