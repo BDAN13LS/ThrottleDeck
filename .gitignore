@@ -8,5 +8,4 @@ logs/
 ui/node_modules/
 ui/test-results/
 docs/reference/
-docs/README.md
 docs/GOTCHAS.md

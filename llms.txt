@@ -1,0 +1,39 @@
+# ThrottleDeck
+
+> Loopback-only, GET-only shared read-budget broker for Polymarket US and Kalshi,
+> paired with a compact local Windows control window.
+
+## Start here
+
+- [Project README](README.md): Architecture, setup, active limits, failure
+  contracts, caller policy, control window, and verification.
+- [Documentation map](docs/README.md): Routes venue questions to the smallest
+  relevant local or vendored source.
+- [Caller adoption template](docs/ADOPTION-STATUS.md): Metrics-generated local
+  status with explicit evidence limits and public-repository privacy guidance.
+- [Detailed LLM context](llms-full.txt): Current service contracts and safe
+  change boundaries.
+
+## Source areas
+
+- `venue_broker/`: Shared read broker on `127.0.0.1:8777`.
+- `governor/`: Local control service and committed web bundle on
+  `127.0.0.1:8778`.
+- `ui/`: React/Vite source and browser tests.
+- `broker_client.py`: Fail-closed client copied into adopting applications.
+- `scripts/`: Setup, hidden Windows launchers, adoption update, and manual
+  source-audit commands.
+- `tests/`: Offline Python contracts and safety tests.
+
+## Non-negotiable constraints
+
+- The broker accepts GET only and has no order or fund-movement routes.
+- Everything binds to loopback; no LAN or internet exposure.
+- Callers never bypass an unavailable broker with a direct fallback.
+- Credentials remain caller-owned and are forwarded only in memory.
+- `/version` identifies the running build and `/callers` exposes the effective
+  generic project/class/weight registry; both are local and upstream-free.
+- The control window never becomes or supervises a second broker.
+- Public configuration, docs, fixtures, and screenshots stay synthetic and
+  contain no operator-specific application names or secrets.
+- Do not hand-edit `docs/reference/`; it is vendored source material.

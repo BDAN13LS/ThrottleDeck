@@ -57,13 +57,29 @@ class CallerPolicy:
     default_class: str
     weights: Mapping[str, int]
     callers: Mapping[str, str]
+    projects: Mapping[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "weights", MappingProxyType(dict(self.weights)))
         object.__setattr__(self, "callers", MappingProxyType(dict(self.callers)))
+        object.__setattr__(self, "projects", MappingProxyType(dict(self.projects)))
 
     def class_for(self, caller: str) -> str:
         return self.callers.get(caller.lower(), self.default_class)
+
+    def project_for(self, caller: str) -> str | None:
+        return self.projects.get(caller.lower())
+
+    def registry(self) -> list[dict[str, str | int]]:
+        return [
+            {
+                "name": caller,
+                "project": self.projects.get(caller, "Unassigned"),
+                "class": class_name,
+                "weight": self.weights[class_name],
+            }
+            for caller, class_name in sorted(self.callers.items())
+        ]
 
 
 def load_caller_policy(path: str | os.PathLike[str]) -> CallerPolicy:
@@ -109,22 +125,29 @@ def load_caller_policy(path: str | os.PathLike[str]) -> CallerPolicy:
         )
 
     caller_classes: dict[str, str] = {}
+    caller_projects: dict[str, str] = {}
     for raw_name, values in callers.items():
         name = _normalized_policy_name(raw_name, "caller")
         if name in caller_classes:
             raise ValueError(f"duplicate caller after normalization: {name}")
         if not isinstance(values, dict):
             raise ValueError(f"caller {name!r} must be a table")
-        _reject_unknown_keys(values, {"class"}, f"[callers.{raw_name}]")
+        _reject_unknown_keys(values, {"class", "project"}, f"[callers.{raw_name}]")
         class_name = values.get("class")
         if not isinstance(class_name, str):
             raise ValueError(f"caller {name!r} class must be a string")
         class_name = class_name.lower()
         if class_name not in weights:
             raise ValueError(f"caller {name!r} references unknown class {class_name!r}")
+        project = values.get("project")
+        if not isinstance(project, str) or not project.strip():
+            raise ValueError(f"caller {name!r} project must be a non-empty string")
+        if len(project) > 80 or "\n" in project or "\r" in project or "|" in project:
+            raise ValueError(f"caller {name!r} project is invalid")
         caller_classes[name] = class_name
+        caller_projects[name] = project.strip()
 
-    return CallerPolicy(default_class, weights, caller_classes)
+    return CallerPolicy(default_class, weights, caller_classes, caller_projects)
 
 
 def _required_table(raw: Mapping[str, object], name: str) -> dict[str, object]:
@@ -153,7 +176,12 @@ def default_caller_policy() -> CallerPolicy:
     # ``weather`` is retained as a bounded compatibility row for existing
     # programmatic callers. Production startup replaces this with the explicit
     # caller-policy.toml registry.
-    return CallerPolicy("standard", {"standard": 1}, {"weather": "standard"})
+    return CallerPolicy(
+        "standard",
+        {"standard": 1},
+        {"weather": "standard"},
+        {"weather": "Unassigned"},
+    )
 
 
 @dataclass(frozen=True, slots=True)

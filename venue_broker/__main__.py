@@ -8,6 +8,7 @@ from venue_broker.app import create_app
 from venue_broker.broker import Broker
 from venue_broker.config import BROKER_HOST, Settings
 from venue_broker.control_policy import ControlPolicyReader
+from venue_broker.version import resolve_commit_sha
 
 
 def main() -> None:
@@ -16,7 +17,13 @@ def main() -> None:
     ControlStore.create(paths.database, policy_target=paths.broker_policy)
     policy_reader = ControlPolicyReader(settings.control_policy_path)
     policy_reader.validate()
-    app = create_app(Broker(settings, policy_reader=policy_reader))
+    app = create_app(
+        Broker(
+            settings,
+            policy_reader=policy_reader,
+            commit_sha=resolve_commit_sha(),
+        )
+    )
     uvicorn.run(
         app,
         host=BROKER_HOST,

@@ -61,6 +61,9 @@ the protected application come from `%LOCALAPPDATA%\ThrottleDeck\apps.toml`. The
 checked-in `governor/default-apps.toml`, UI fixtures, documentation, and screenshots
 must stay synthetic and operator-neutral. Config changes take effect after both
 ThrottleDeck and ThrottleDeck Broker restart; never put credentials in this file.
+Keep its caller labels synchronized with `caller-policy.toml`. Every broker caller
+entry also requires a synthetic `project` value for `/callers` and generated
+adoption status.
 
 ```powershell
 npm --prefix ui test
@@ -72,8 +75,8 @@ npm --prefix ui run test:e2e
 ## Tests
 
 ```powershell
-.\.venv\Scripts\pytest.exe -q
-.\.venv\Scripts\ruff.exe check .
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check .
 ```
 
 Tests replace the upstream fetch function and do not call either venue.

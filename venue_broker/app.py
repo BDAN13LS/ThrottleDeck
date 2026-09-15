@@ -82,6 +82,20 @@ class BrokerApp:
                 headers["X-Venue-Broker-Source"] = "broker"
             await send_response(send, BrokerResponse(status, body, headers))
             return
+        if raw_path == b"/version":
+            body = json.dumps(self._broker.version(), sort_keys=True).encode()
+            await send_response(
+                send,
+                BrokerResponse(200, body, {"content-type": "application/json"}),
+            )
+            return
+        if raw_path == b"/callers":
+            body = json.dumps(self._broker.callers(), sort_keys=True).encode()
+            await send_response(
+                send,
+                BrokerResponse(200, body, {"content-type": "application/json"}),
+            )
+            return
 
         route = parse_route(raw_path)
         if route is None:

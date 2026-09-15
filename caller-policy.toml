@@ -21,30 +21,42 @@ weight = 1
 # Example latency-sensitive collector.
 [callers.collector]
 class = "trading"
+project = "Signal Collector"
 [callers.collector-scanner]
 class = "trading"
+project = "Signal Collector"
 [callers.collector-us-trades]
 class = "trading"
+project = "Signal Collector"
 
 # Example bulk observer. Promote whichever process becomes latency-sensitive;
 # a class is policy, not a property of a project.
 [callers.execution]
 class = "bulk"
+project = "Execution Bot"
 [callers.execution-lag]
 class = "bulk"
+project = "Execution Bot"
 [callers.execution-whales]
 class = "bulk"
+project = "Execution Bot"
 [callers.execution-x]
 class = "bulk"
+project = "Execution Bot"
 [callers.execution-watch-football]
 class = "bulk"
+project = "Execution Bot"
 [callers.execution-reconcile]
 class = "bulk"
+project = "Execution Bot"
 [callers.execution-cockpit]
 class = "bulk"
+project = "Execution Bot"
 [callers.execution-doctor]
 class = "bulk"
+project = "Execution Bot"
 
 # Example standard research worker.
 [callers.research]
 class = "standard"
+project = "Market Research"

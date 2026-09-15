@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from governor.registry import load_app_config
 from venue_broker.config import (
     BROKER_HOST,
     CACHE_TTL_RULES,
@@ -66,6 +67,21 @@ def test_root_policy_configures_classes_and_unknown_caller_default() -> None:
     assert policy.class_for("execution") == "bulk"
     assert policy.class_for("research") == "standard"
     assert policy.class_for("new-bot") == "standard"
+    assert policy.project_for("collector") == "Signal Collector"
+    assert policy.project_for("execution-lag") == "Execution Bot"
+    assert policy.project_for("research") == "Market Research"
+
+
+def test_shipped_dashboard_and_broker_registries_name_the_same_callers() -> None:
+    root = Path(__file__).resolve().parents[1]
+    policy = load_caller_policy(root / "caller-policy.toml")
+    apps = load_app_config(root / "governor" / "default-apps.toml")
+
+    dashboard_callers = {
+        caller for app in apps.apps.values() for caller in app.callers
+    }
+
+    assert dashboard_callers == set(policy.callers)
 
 
 def test_public_launcher_does_not_pin_account_specific_rates() -> None:
@@ -91,6 +107,7 @@ weight = 2
 
 [callers.execution]
 class = "trading"
+project = "Example App"
 """.strip(),
         encoding="utf-8",
     )
@@ -98,6 +115,7 @@ class = "trading"
     policy = load_caller_policy(policy_path)
 
     assert policy.class_for("execution") == "trading"
+    assert policy.project_for("execution") == "Example App"
 
 
 @pytest.mark.parametrize(
@@ -129,8 +147,20 @@ class = "standard"
 weight = 2
 [callers.bot]
 class = "missing"
+project = "Bot"
 """,
             "unknown class",
+        ),
+        (
+            """
+[defaults]
+class = "standard"
+[classes.standard]
+weight = 2
+[callers.bot]
+class = "standard"
+""",
+            "project",
         ),
     ],
 )

@@ -40,6 +40,8 @@ tier and perps reads remain off until an operator explicitly configures their
 documented rate. Setup does not request, save, display, or configure any
 exchange account material. Configure callers afterwards in the per-user file as
 described in [Configure applications per user](#configure-applications-per-user).
+Keep those caller labels synchronized with `caller-policy.toml`; the shipped
+generic files use the same labels and the test suite enforces that contract.
 Append `-PreflightOnly` to the command to run those checks without changing the
 machine.
 
@@ -109,10 +111,10 @@ machine.
                                                     |                    |
                                                     v                    v
                                           +------------------+  +------------------+
-                                          |  LOG IT: someone |  |  Our own traffic |
-                                          |  outside the     |  |  hit the ceiling |
-                                          |  broker is       |  +------------------+
-                                          |  calling         |
+                                          |  LOG diagnostic  |  |  Broker budget   |
+                                          |  clue: inspect   |  |  was exhausted   |
+                                          |  endpoint and    |  +------------------+
+                                          |  shared traffic  |
                                           +------------------+
 ```
 
@@ -210,8 +212,10 @@ weight = 1
 
 [callers.execution-bot]
 class = "trading"
+project = "Execution Bot"
 [callers.research-worker]
 class = "bulk"
+project = "Market Research"
 ```
 
 A weight is a relative admission-turn share while classes are simultaneously
@@ -238,13 +242,16 @@ immediately. Add this only when a different policy is wanted:
 ```toml
 [callers.my-new-bot]
 class = "bulk"
+project = "My New Bot"
 ```
 
 Class and caller names may contain letters, numbers, underscores, periods, and
 hyphens, up to 64 characters. Weights must be positive integers. Every referenced
-class must exist. Unknown fields, malformed TOML, a missing policy file, invalid
-weights, and missing class references all fail startup rather than silently
-changing policy.
+class must exist. Every caller also needs a non-empty, display-safe `project`
+name so `/callers` and the adoption report can group its processes. Unknown
+fields, malformed TOML, a missing policy file, invalid weights, missing projects,
+and missing class references all fail startup rather than silently changing
+policy.
 
 ## Cache policy
 
@@ -325,6 +332,40 @@ caller counts include both products. Polymarket reports `rolling_second_limit`.
 either venue. It returns `200 {"status":"ok"}` while accepting work and 503 with
 `{"status":"closing"}` after shutdown begins. An upstream outage does not make
 the broker unhealthy and should not cause a supervisor restart loop.
+
+`GET http://127.0.0.1:8777/version` reports a schema version, commit SHA, broker
+instance ID, and start time without calling a venue. Set
+`VENUE_BROKER_COMMIT_SHA` in packaged deployments that do not retain Git data.
+`GET http://127.0.0.1:8777/callers` exposes the effective caller name, project,
+class, and weight registry plus the default class. Neither endpoint contains
+credentials or request headers.
+
+The generated block in [docs/ADOPTION-STATUS.md](docs/ADOPTION-STATUS.md) joins
+`/metrics` and `/callers` while preserving prose outside its markers:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\update-adoption-status.py
+```
+
+An observed count proves that named path used the broker since the current
+process started. Zero means only “not observed”; it cannot prove a direct path or
+complete migration. Do not commit a locally generated table containing private
+application names to a public fork.
+
+After adding or changing a Python venue client, run the manual source audit over
+the directories you choose:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\audit-direct-venue-reads.py `
+  --root C:\Dev `
+  --exclude C:\Dev\ThrottleDeck
+```
+
+Exit code 1 means findings require review. The audit reads Python source only,
+reports exact file and line numbers, and skips tests, vendored docs, exports,
+worktrees, WebSockets, Polymarket Global, and POST-only code. A clean scan is not
+runtime proof and cannot see generated code, opaque SDK behavior, or other
+languages.
 
 ## ThrottleDeck dashboard
 
@@ -497,8 +538,8 @@ through the broker as directly against the venue.
 ## Verify
 
 ```powershell
-.\.venv\Scripts\pytest.exe -q
-.\.venv\Scripts\ruff.exe check .
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check .
 ```
 
 The default suite injects the upstream fetch function and makes no network calls.

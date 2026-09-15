@@ -4,21 +4,21 @@
 [[apps]]
 id = "collector"
 name = "Signal Collector"
-callers = ["signal-collector"]
+callers = ["collector", "collector-scanner", "collector-us-trades"]
 money_mode = "paper"
 coverage_note = "Brokered REST is measured. Direct streams are outside Governor's view."
 
 [[apps]]
 id = "execution"
 name = "Execution Bot"
-callers = ["execution-bot"]
+callers = ["execution", "execution-lag", "execution-whales", "execution-x", "execution-watch-football", "execution-reconcile", "execution-cockpit", "execution-doctor"]
 money_mode = "real"
 coverage_note = "Brokered REST is measured. Order submission remains a separate path."
 
 [[apps]]
 id = "research"
 name = "Market Research"
-callers = ["market-research"]
+callers = ["research"]
 money_mode = "paper"
 coverage_note = "Brokered REST is measured. WebSockets remain direct by design."
 

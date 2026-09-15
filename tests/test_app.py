@@ -6,7 +6,7 @@ import pytest
 
 from venue_broker.app import create_app, parse_route
 from venue_broker.broker import Broker, BrokerResponse
-from venue_broker.config import BucketConfig, Settings
+from venue_broker.config import BucketConfig, CallerPolicy, Settings
 
 
 class RecordingFetcher:
@@ -68,6 +68,64 @@ async def test_metrics_route_is_json() -> None:
 
     assert response.status_code == 200
     assert set(response.json()["venues"]) == {"pmus", "kalshi"}
+
+
+@pytest.mark.asyncio
+async def test_version_identifies_the_running_build_without_calling_upstream() -> None:
+    fetcher = RecordingFetcher()
+    broker = Broker(
+        Settings(rate_margin=1.0),
+        fetcher=fetcher,
+        commit_sha="1234567890abcdef1234567890abcdef12345678",
+    )
+    app = create_app(broker)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://broker"
+    ) as client:
+        response = await client.get("/version")
+
+    payload = response.json()
+    assert response.status_code == 200
+    assert payload["schema_version"] == 1
+    assert payload["commit_sha"] == "1234567890abcdef1234567890abcdef12345678"
+    assert payload["instance_id"]
+    assert payload["started_at"]
+    assert fetcher.url == ""
+
+
+@pytest.mark.asyncio
+async def test_callers_exposes_generic_registry_without_calling_upstream() -> None:
+    fetcher = RecordingFetcher()
+    policy = CallerPolicy(
+        "standard",
+        {"trading": 8, "standard": 2},
+        {"signal-collector": "trading"},
+        {"signal-collector": "Signal Collector"},
+    )
+    app = create_app(
+        Broker(Settings(rate_margin=1.0, caller_policy=policy), fetcher=fetcher)
+    )
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://broker"
+    ) as client:
+        response = await client.get("/callers")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "schema_version": 1,
+        "default": {"class": "standard", "weight": 2},
+        "callers": [
+            {
+                "name": "signal-collector",
+                "project": "Signal Collector",
+                "class": "trading",
+                "weight": 8,
+            }
+        ],
+    }
+    assert fetcher.url == ""
 
 
 @pytest.mark.asyncio

@@ -152,6 +152,7 @@ class Broker:
         retry_sleeper: Callable[[float], Awaitable[None]] = asyncio.sleep,
         policy_reader: ControlPolicyReader | None = None,
         wall_clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        commit_sha: str = "unknown",
     ) -> None:
         self.settings = settings
         self._policy_reader = policy_reader
@@ -160,6 +161,7 @@ class Broker:
         self._wall_clock = wall_clock
         self._instance_id = str(uuid.uuid4())
         self._started_at = wall_clock()
+        self._commit_sha = commit_sha
         self._retry_sleep = retry_sleeper
         self._owned_fetcher = (
             HttpxFetcher(settings.request_timeout_seconds) if fetcher is None else None
@@ -721,6 +723,25 @@ class Broker:
             "kalshi_tier": self.settings.kalshi_tier,
             "status": "closing" if self._closing else "ok",
             "venues": venues,
+        }
+
+    def version(self) -> dict[str, str | int]:
+        return {
+            "schema_version": 1,
+            "commit_sha": self._commit_sha,
+            "instance_id": self._instance_id,
+            "started_at": self._started_at.isoformat(),
+        }
+
+    def callers(self) -> dict[str, Any]:
+        policy = self.settings.caller_policy
+        return {
+            "schema_version": 1,
+            "default": {
+                "class": policy.default_class,
+                "weight": policy.weights[policy.default_class],
+            },
+            "callers": policy.registry(),
         }
 
     def _bounded_callers(self, values: Mapping[str, int]) -> Counter[str]:

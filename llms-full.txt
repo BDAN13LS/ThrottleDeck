@@ -42,9 +42,25 @@ timeout 504, upstream connection failure 502, broker closing 503, oversized
 weighted request 400, invalid batch cost 400, unconfigured perps budget 503,
 stopped broker access 423, and unavailable control state 503.
 
-ThrottleDeck Broker's `/health` and `/metrics` endpoints are cheap local reads that do not
-consume venue capacity. A venue outage does not make `/health` fail and must not
-trigger a supervisor restart loop.
+ThrottleDeck Broker's `/health`, `/metrics`, `/version`, and `/callers` endpoints
+are cheap local reads that do not consume venue capacity. `/version` reports the
+commit SHA, process instance, and start time. `/callers` reports the effective
+project, class, and weight registry from `caller-policy.toml`. A venue outage does
+not make `/health` fail and must not trigger a supervisor restart loop.
+
+The generated block in `docs/ADOPTION-STATUS.md` joins `/metrics` with `/callers`.
+Served traffic is positive proof that a named caller path used the broker since
+the current process started. Zero traffic is only “not observed,” never proof of
+a direct path or complete project migration. The public template stays synthetic;
+operators should not commit a locally generated table containing private app names.
+
+`scripts/audit-direct-venue-reads.py` manually scans selected roots for detectable
+low-level Python Kalshi and Polymarket US REST GETs. It reports exact file and line
+numbers without reading credentials or runtime state. Tests, vendored docs,
+exports, worktrees, WebSockets, Polymarket Global, and POST-only code are skipped.
+Exit code 1 means findings need review. A clean scan cannot prove that generated
+code, opaque SDKs, other languages, or short-lived runtime traffic do not bypass
+the broker.
 
 ## ThrottleDeck control window
 
@@ -100,7 +116,9 @@ coverage notes, and the protected application are loaded from the operator's
 `governor/default-apps.toml`, and the shortcut installer copies it only when the
 per-user file does not already exist. Caller labels must be unique. Restart both
 ThrottleDeck and ThrottleDeck Broker after a registry change so observation and
-broker-access policy use the same mapping. Configuration files, fixtures, docs,
+broker-access policy use the same mapping. The shipped generic dashboard and
+broker registries use the same labels, and every caller-policy entry has a
+synthetic `project` value for `/callers`. Configuration files, fixtures, docs,
 and screenshots must not expose an operator's private application names.
 
 The per-install control key stays in `%LOCALAPPDATA%\ThrottleDeck\control.key`, is
@@ -134,8 +152,8 @@ that the venue already documents.
 Python verification:
 
 ```powershell
-.\.venv\Scripts\pytest.exe -q
-.\.venv\Scripts\ruff.exe check .
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check .
 ```
 
 Governor UI verification:
